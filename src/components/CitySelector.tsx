@@ -34,6 +34,16 @@ export default function CitySelector() {
     }
   }, [cityId]);
 
+  // Auto-redirect returning users from homepage to their last selected city
+  useEffect(() => {
+    if (location.pathname === '/' && cities) {
+      const lastCityId = localStorage.getItem('lastSelectedCityId');
+      if (lastCityId) {
+        navigate(`/city/${lastCityId}`);
+      }
+    }
+  }, [location.pathname, cities, navigate]);
+
   // Determine the current city to display
   const currentCity = useMemo(() => {
     if (!cities || cities.length === 0) return null;

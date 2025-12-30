@@ -26,7 +26,7 @@ export default function CategoryFilter({
               : 'bg-white dark:bg-dark-card text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-dark-border hover:border-orange-500 dark:hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400'
           }`}
         >
-          All Categories
+          All
         </button>
 
         {/* Category Pills */}

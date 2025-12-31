@@ -12,6 +12,7 @@ export interface Category {
   slug: string;
   icon: string | null;
   createdAt: string;
+  subcategories?: Subcategory[];
 }
 
 export interface Subcategory {
@@ -43,6 +44,11 @@ export interface Business {
   city?: City;
   category?: Category;
   subcategory?: Subcategory;
+  businessOwnerId?: string | null;
+  status?: string;
+  claimedAt?: string | null;
+  approvedAt?: string | null;
+  approvalNotes?: string | null;
 }
 
 export interface BusinessSearchParams {

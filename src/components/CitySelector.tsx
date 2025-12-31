@@ -53,7 +53,7 @@ export default function CitySelector() {
     if (!cities || cities.length === 0) return null;
 
     // If we're on a city page, use that city
-    if (cityId) {
+    if (cityId && cities) {
       const city = cities.find((c) => c.id === Number(cityId));
       if (city) {
         return city;
@@ -63,7 +63,7 @@ export default function CitySelector() {
     // If not on a city page, don't show any city in the dropdown
     // (The auto-redirect will handle returning users)
     return null;
-  }, [cities, cityId]);
+  }, [cities, cityId, location.pathname]);
 
   const handleCitySelect = (selectedCityId: number) => {
     localStorage.setItem('lastSelectedCityId', selectedCityId.toString());

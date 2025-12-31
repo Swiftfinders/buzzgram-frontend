@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getCities } from '../lib/api';
@@ -15,19 +15,25 @@ export default function CitySelector() {
     queryFn: getCities,
   });
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside (desktop and mobile)
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent | TouchEvent) {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    function handleTouchOutside(event: TouchEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('touchstart', handleTouchOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('touchstart', handleTouchOutside);
     };
   }, []);
 
@@ -54,10 +60,30 @@ export default function CitySelector() {
     setIsOpen(false);
   };
 
-  if (!cities || cities.length === 0) return null;
+  // Determine the current city to display
+  const currentCity = useMemo(() => {
+    if (!cities || cities.length === 0) return null;
 
-  // Find current city directly
-  const currentCity = cityId ? cities.find((c) => c.id === Number(cityId)) : null;
+    // If we're on a city page, use that city
+    if (cityId) {
+      const city = cities.find((c) => c.id === Number(cityId));
+      if (city) {
+        return city;
+      }
+    }
+
+    // If not on a city page, try to get last selected city from localStorage
+    const lastCityId = localStorage.getItem('lastSelectedCityId');
+    if (lastCityId) {
+      const city = cities.find((c) => c.id === Number(lastCityId));
+      if (city) return city;
+    }
+
+    // No default - let user select a city
+    return null;
+  }, [cities, cityId, location.pathname]);
+
+  if (!cities || cities.length === 0) return null;
 
   return (
     <div className="relative" ref={dropdownRef}>

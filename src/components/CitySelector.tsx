@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getCities } from '../lib/api';
@@ -48,23 +48,6 @@ export default function CitySelector() {
     }
   }, [location.pathname, cities, navigate]);
 
-  // Determine the current city to display
-  const currentCity = useMemo(() => {
-    if (!cities || cities.length === 0) return null;
-
-    // If we're on a city page, use that city
-    if (cityId && cities) {
-      const city = cities.find((c) => c.id === Number(cityId));
-      if (city) {
-        return city;
-      }
-    }
-
-    // If not on a city page, don't show any city in the dropdown
-    // (The auto-redirect will handle returning users)
-    return null;
-  }, [cities, cityId, location.pathname]);
-
   const handleCitySelect = (selectedCityId: number) => {
     localStorage.setItem('lastSelectedCityId', selectedCityId.toString());
     navigate(`/city/${selectedCityId}`);
@@ -72,6 +55,9 @@ export default function CitySelector() {
   };
 
   if (!cities || cities.length === 0) return null;
+
+  // Find current city directly
+  const currentCity = cityId ? cities.find((c) => c.id === Number(cityId)) : null;
 
   return (
     <div className="relative" ref={dropdownRef}>

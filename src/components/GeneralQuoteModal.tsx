@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getCategories, getSubcategories, api } from '../lib/api';
@@ -16,6 +16,7 @@ interface AvailabilitySlot {
 
 export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModalProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // Form state
   const [name, setName] = useState(user?.name || '');
@@ -106,6 +107,9 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
       );
 
       setSuccess(true);
+
+      // Invalidate queries to refresh dashboard
+      queryClient.invalidateQueries(['myQuotes']);
 
       // Reset form after successful submission
       setTimeout(() => {

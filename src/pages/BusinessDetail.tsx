@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getBusiness, getCategories, getSubcategories, submitQuoteRequest } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -12,6 +12,7 @@ export default function BusinessDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabType>('about');
 
   // Quote form state
@@ -83,6 +84,10 @@ export default function BusinessDetail() {
       });
 
       setQuoteSuccess(true);
+
+      // Invalidate queries to refresh dashboard
+      queryClient.invalidateQueries(['myQuotes']);
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       setQuoteError(err.response?.data?.message || 'Failed to submit quote request. Please try again.');

@@ -135,7 +135,7 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] overflow-y-auto">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
@@ -143,8 +143,10 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
       />
 
       {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4 relative z-[101]">
-        <div className="relative w-full max-w-2xl bg-white dark:bg-dark-card rounded-lg shadow-xl">
+      <div
+        className="relative w-full max-w-2xl bg-white dark:bg-dark-card rounded-lg shadow-xl z-[10000] max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-dark-border">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -161,7 +163,7 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
           </div>
 
           {/* Content */}
-          <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+          <div className="p-6">
             {success ? (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 text-center">
                 <svg className="w-16 h-16 text-green-600 dark:text-green-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

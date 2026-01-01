@@ -447,11 +447,40 @@ export default function BusinessDetail() {
             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
               Request a Quote
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Fill out the form below and {business.name} will contact you shortly.
-            </p>
 
-            {quoteSuccess ? (
+            {!user ? (
+              <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-8 text-center">
+                <svg className="w-16 h-16 text-orange-600 dark:text-orange-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  Sign In Required
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Please create an account or sign in to request a quote from {business.name}
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={() => navigate('/register')}
+                    className="px-6 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors"
+                  >
+                    Create Account
+                  </button>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="px-6 py-2.5 border border-orange-600 text-orange-600 dark:text-orange-400 rounded-lg font-medium hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+                  >
+                    Sign In
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                  Fill out the form below and {business.name} will contact you shortly.
+                </p>
+
+                {quoteSuccess ? (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 text-center">
                 <svg className="w-16 h-16 text-green-600 dark:text-green-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -663,6 +692,8 @@ export default function BusinessDetail() {
                   {quoteLoading ? 'Submitting...' : 'Request Quote'}
                 </button>
               </form>
+            )}
+              </>
             )}
           </div>
         )}

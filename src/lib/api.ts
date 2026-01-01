@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { City, Category, Subcategory, Business, BusinessSearchParams } from '../types';
+import type { City, Category, Subcategory, Business, BusinessSearchParams, GeneralQuote } from '../types';
 
 // Use Railway URL in production, localhost in development
 const API_BASE_URL = import.meta.env.PROD
@@ -87,4 +87,10 @@ export const submitQuoteRequest = async (quoteData: {
 }) => {
   const { data } = await api.post('/quote-requests', quoteData);
   return data;
+};
+
+// General Quotes (Admin only)
+export const getGeneralQuotes = async (): Promise<GeneralQuote[]> => {
+  const { data } = await api.get<{ success: boolean; data: GeneralQuote[] }>('/general-quotes');
+  return data.data;
 };

@@ -67,3 +67,29 @@ export interface AvailabilitySlot {
   date: string; // ISO date string
   timeSlot: 'morning' | 'afternoon' | 'evening';
 }
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
+
+export interface GeneralQuote {
+  id: number;
+  userId: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  categoryId: number;
+  subcategoryId: number | null;
+  budget: string | null;
+  availability: string;
+  message: string | null;
+  status: 'pending' | 'viewed' | 'responded';
+  createdAt: string;
+  updatedAt: string;
+  user?: User;
+  category?: Category;
+  subcategory?: Subcategory;
+}

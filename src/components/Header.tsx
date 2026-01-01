@@ -1,12 +1,15 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import UserDropdown from './UserDropdown';
 import CitySelector from './CitySelector';
+import GeneralQuoteModal from './GeneralQuoteModal';
 
 export default function Header() {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
 
   return (
     <header className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-dark-border sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95">
@@ -35,6 +38,14 @@ export default function Header() {
           <div className="flex items-center space-x-3">
             {user ? (
               <>
+                {/* Get Quote Button */}
+                <button
+                  onClick={() => setIsQuoteModalOpen(true)}
+                  className="px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors"
+                >
+                  Get Quote
+                </button>
+
                 {/* User Dropdown */}
                 <UserDropdown />
               </>
@@ -74,6 +85,12 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      {/* General Quote Modal */}
+      <GeneralQuoteModal
+        isOpen={isQuoteModalOpen}
+        onClose={() => setIsQuoteModalOpen(false)}
+      />
     </header>
   );
 }

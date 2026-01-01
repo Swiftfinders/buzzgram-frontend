@@ -135,18 +135,19 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
-      {/* Backdrop - Click to close */}
+    <>
+      {/* Backdrop */}
       <div
-        className="absolute inset-0"
+        className="fixed inset-0 bg-black/50 z-[1000]"
         onClick={onClose}
       />
 
-      {/* Modal Container */}
-      <div
-        className="relative bg-white dark:bg-dark-card rounded-lg max-h-[90vh] overflow-y-auto max-w-lg w-full mx-4 z-[1001]"
-        onClick={(e) => e.stopPropagation()}
-      >
+      {/* Modal Container - Centered */}
+      <div className="fixed inset-0 flex items-center justify-center z-[1001] pointer-events-none">
+        <div
+          className="bg-white dark:bg-dark-card rounded-lg shadow-xl max-h-[90vh] overflow-y-auto w-full max-w-[500px] mx-4 pointer-events-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-dark-border">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -406,7 +407,8 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
               </form>
             )}
           </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

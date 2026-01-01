@@ -1,20 +1,26 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
-import { getFavorites } from '../lib/api';
+import { getFavorites, getMyQuotes } from '../lib/api';
 import BusinessCard from '../components/BusinessCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function UserDashboard() {
   const { user } = useAuth();
 
-  const { data: favorites, isLoading } = useQuery({
+  const { data: favorites, isLoading: favoritesLoading } = useQuery({
     queryKey: ['favorites'],
     queryFn: getFavorites,
     enabled: !!user,
   });
 
-  if (isLoading) return <LoadingSpinner />;
+  const { data: myQuotes, isLoading: quotesLoading } = useQuery({
+    queryKey: ['myQuotes'],
+    queryFn: getMyQuotes,
+    enabled: !!user,
+  });
+
+  if (favoritesLoading || quotesLoading) return <LoadingSpinner />;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-bg">
@@ -52,13 +58,13 @@ export default function UserDashboard() {
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
                   <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Recent Views</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">0</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Quote Requests</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{myQuotes?.total || 0}</p>
               </div>
             </div>
           </div>
@@ -79,6 +85,107 @@ export default function UserDashboard() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Quote History Section */}
+        <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Quote History
+            </h2>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              {myQuotes?.total || 0} total quotes
+            </div>
+          </div>
+
+          {myQuotes && myQuotes.quotes && myQuotes.quotes.length > 0 ? (
+            <div className="space-y-4">
+              {myQuotes.quotes.map((quote: any) => (
+                <div
+                  key={`${quote.type}-${quote.id}`}
+                  className="border border-gray-200 dark:border-dark-border rounded-lg p-4 hover:border-orange-500 dark:hover:border-orange-500 transition-all"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 text-xs font-medium rounded ${
+                        quote.type === 'general'
+                          ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300'
+                          : 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
+                      }`}>
+                        {quote.type === 'general' ? 'General Quote' : 'Business Quote'}
+                      </span>
+                      <span className={`px-2 py-1 text-xs font-medium rounded ${
+                        quote.status === 'pending'
+                          ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300'
+                          : quote.status === 'viewed'
+                          ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
+                          : 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300'
+                      }`}>
+                        {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
+                      </span>
+                    </div>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {new Date(quote.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    {quote.businessName && (
+                      <div>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Business:</span>
+                        <span className="ml-2 text-gray-600 dark:text-gray-400">{quote.businessName}</span>
+                      </div>
+                    )}
+                    <div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Category:</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">{quote.category?.name}</span>
+                    </div>
+                    {quote.subcategory && (
+                      <div>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Subcategory:</span>
+                        <span className="ml-2 text-gray-600 dark:text-gray-400">{quote.subcategory.name}</span>
+                      </div>
+                    )}
+                    {quote.budget && (
+                      <div>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Budget:</span>
+                        <span className="ml-2 text-gray-600 dark:text-gray-400">{quote.budget}</span>
+                      </div>
+                    )}
+                    <div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Contact:</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">{quote.email}</span>
+                    </div>
+                    {quote.phone && (
+                      <div>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Phone:</span>
+                        <span className="ml-2 text-gray-600 dark:text-gray-400">{quote.phone}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {quote.message && (
+                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-dark-border">
+                      <span className="font-medium text-gray-700 dark:text-gray-300 text-sm">Message:</span>
+                      <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{quote.message}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+                No quote requests yet
+              </h3>
+              <p className="mt-2 text-gray-600 dark:text-gray-300">
+                Submit a quote request to get started
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Saved Favorites Section */}

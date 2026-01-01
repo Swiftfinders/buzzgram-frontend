@@ -94,3 +94,9 @@ export const getGeneralQuotes = async (): Promise<GeneralQuote[]> => {
   const { data } = await api.get<{ success: boolean; data: GeneralQuote[] }>('/general-quotes');
   return data.data;
 };
+
+// Get current user's all quotes (general + business)
+export const getMyQuotes = async () => {
+  const { data } = await api.get('/general-quotes/my-quotes');
+  return data.data;
+};

@@ -109,7 +109,7 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
       setSuccess(true);
 
       // Invalidate queries to refresh dashboard
-      queryClient.invalidateQueries(['myQuotes']);
+      queryClient.invalidateQueries({ queryKey: ['myQuotes'] });
 
       // Reset form after successful submission
       setTimeout(() => {

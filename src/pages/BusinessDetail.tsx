@@ -86,7 +86,7 @@ export default function BusinessDetail() {
       setQuoteSuccess(true);
 
       // Invalidate queries to refresh dashboard
-      queryClient.invalidateQueries(['myQuotes']);
+      queryClient.invalidateQueries({ queryKey: ['myQuotes'] });
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {

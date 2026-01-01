@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getCategories, getSubcategories, api } from '../lib/api';
 
@@ -66,6 +67,12 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Check if user is authenticated
+    if (!user) {
+      setError('Please sign up or login to submit a quote request.');
+      return;
+    }
 
     // Validate at least one availability slot
     const validSlots = availability.filter(slot => slot.date !== '');
@@ -171,7 +178,20 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
               <form onSubmit={handleSubmit} className="space-y-4">
                 {error && (
                   <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                    <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+                    <p className="text-sm text-red-800 dark:text-red-200">
+                      {error}
+                      {!user && (
+                        <span className="block mt-2">
+                          <Link to="/login" className="text-red-600 dark:text-red-400 hover:underline font-medium" onClick={onClose}>
+                            Login
+                          </Link>
+                          {' or '}
+                          <Link to="/register" className="text-red-600 dark:text-red-400 hover:underline font-medium" onClick={onClose}>
+                            Sign Up
+                          </Link>
+                        </span>
+                      )}
+                    </p>
                   </div>
                 )}
 

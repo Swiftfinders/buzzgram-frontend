@@ -12,6 +12,7 @@ export default function Header() {
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
 
   return (
+    <>
     <header className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-dark-border sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -85,12 +86,13 @@ export default function Header() {
           </div>
         </div>
       </div>
-
-      {/* General Quote Modal */}
-      <GeneralQuoteModal
-        isOpen={isQuoteModalOpen}
-        onClose={() => setIsQuoteModalOpen(false)}
-      />
     </header>
+
+    {/* General Quote Modal - Outside header for proper z-index */}
+    <GeneralQuoteModal
+      isOpen={isQuoteModalOpen}
+      onClose={() => setIsQuoteModalOpen(false)}
+    />
+    </>
   );
 }

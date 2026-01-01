@@ -1,6 +1,5 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useBusinessOwner } from '../hooks/useBusinessOwner';
 import LoadingSpinner from './LoadingSpinner';
 
 interface ProtectedRouteProps {
@@ -14,24 +13,9 @@ export default function ProtectedRoute({
   requireAdmin = false,
   requireBusinessOwner = false,
 }: ProtectedRouteProps) {
-  const { user, loading: authLoading, isAdmin } = useAuth();
-  const { owner, loading: businessOwnerLoading, isAuthenticated: isBusinessOwnerAuthenticated } = useBusinessOwner();
+  const { user, loading, isAdmin, isBusinessOwner } = useAuth();
 
-  // For business owner routes
-  if (requireBusinessOwner) {
-    if (businessOwnerLoading) {
-      return <LoadingSpinner />;
-    }
-
-    if (!isBusinessOwnerAuthenticated || !owner) {
-      return <Navigate to="/business-owner/login" replace />;
-    }
-
-    return <>{children}</>;
-  }
-
-  // For admin and regular user routes
-  if (authLoading) {
+  if (loading) {
     return <LoadingSpinner />;
   }
 
@@ -40,6 +24,10 @@ export default function ProtectedRoute({
   }
 
   if (requireAdmin && !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (requireBusinessOwner && !isBusinessOwner) {
     return <Navigate to="/" replace />;
   }
 

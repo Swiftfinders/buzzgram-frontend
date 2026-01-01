@@ -1,12 +1,16 @@
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
-import { getFavorites, getMyQuotes } from '../lib/api';
+import { getFavorites, getMyQuotes, deleteGeneralQuote, deleteBusinessQuote } from '../lib/api';
 import BusinessCard from '../components/BusinessCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function UserDashboard() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [showQuotes, setShowQuotes] = useState(false);
+  const [deletingQuoteId, setDeletingQuoteId] = useState<string | null>(null);
 
   const { data: favorites, isLoading: favoritesLoading } = useQuery({
     queryKey: ['favorites'],
@@ -19,6 +23,33 @@ export default function UserDashboard() {
     queryFn: getMyQuotes,
     enabled: !!user,
   });
+
+  // Delete quote mutation
+  const deleteQuoteMutation = useMutation({
+    mutationFn: async ({ quoteId, quoteType }: { quoteId: number; quoteType: 'general' | 'business' }) => {
+      if (quoteType === 'general') {
+        return await deleteGeneralQuote(quoteId);
+      } else {
+        return await deleteBusinessQuote(quoteId);
+      }
+    },
+    onSuccess: () => {
+      // Invalidate and refetch quotes
+      queryClient.invalidateQueries({ queryKey: ['myQuotes'] });
+      setDeletingQuoteId(null);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Failed to delete quote');
+      setDeletingQuoteId(null);
+    },
+  });
+
+  const handleDeleteQuote = (quoteId: number, quoteType: 'general' | 'business') => {
+    if (window.confirm('Are you sure you want to delete this quote request?')) {
+      setDeletingQuoteId(`${quoteType}-${quoteId}`);
+      deleteQuoteMutation.mutate({ quoteId, quoteType });
+    }
+  };
 
   if (favoritesLoading || quotesLoading) return <LoadingSpinner />;
 
@@ -53,7 +84,10 @@ export default function UserDashboard() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6">
+          <button
+            onClick={() => setShowQuotes(!showQuotes)}
+            className="w-full bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 hover:border-blue-500 dark:hover:border-blue-500 transition-all cursor-pointer"
+          >
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
@@ -62,12 +96,22 @@ export default function UserDashboard() {
                   </svg>
                 </div>
               </div>
-              <div className="ml-4">
+              <div className="ml-4 text-left flex-1">
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Quote Requests</p>
                 <p className="text-2xl font-semibold text-gray-900 dark:text-white">{myQuotes?.total || 0}</p>
               </div>
+              <div className="ml-4">
+                <svg
+                  className={`w-5 h-5 text-gray-400 transition-transform ${showQuotes ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
-          </div>
+          </button>
 
           <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6">
             <div className="flex items-center">
@@ -87,24 +131,25 @@ export default function UserDashboard() {
           </div>
         </div>
 
-        {/* Quote History Section */}
-        <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Quote History
-            </h2>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              {myQuotes?.total || 0} total quotes
+        {/* Quote History Section - Collapsible */}
+        {showQuotes && (
+          <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Quote History
+              </h2>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                {myQuotes?.total || 0} total quotes
+              </div>
             </div>
-          </div>
 
-          {myQuotes && myQuotes.quotes && myQuotes.quotes.length > 0 ? (
-            <div className="space-y-4">
-              {myQuotes.quotes.map((quote: any) => (
-                <div
-                  key={`${quote.type}-${quote.id}`}
-                  className="border border-gray-200 dark:border-dark-border rounded-lg p-4 hover:border-orange-500 dark:hover:border-orange-500 transition-all"
-                >
+            {myQuotes && myQuotes.quotes && myQuotes.quotes.length > 0 ? (
+              <div className="space-y-4">
+                {myQuotes.quotes.map((quote: any) => (
+                  <div
+                    key={`${quote.type}-${quote.id}`}
+                    className="border border-gray-200 dark:border-dark-border rounded-lg p-4 hover:border-orange-500 dark:hover:border-orange-500 transition-all relative"
+                  >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className={`px-2 py-1 text-xs font-medium rounded ${
@@ -124,9 +169,28 @@ export default function UserDashboard() {
                         {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
                       </span>
                     </div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(quote.createdAt).toLocaleDateString()}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {new Date(quote.createdAt).toLocaleDateString()}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteQuote(quote.id, quote.type)}
+                        disabled={deletingQuoteId === `${quote.type}-${quote.id}`}
+                        className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Delete quote"
+                      >
+                        {deletingQuoteId === `${quote.type}-${quote.id}` ? (
+                          <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
@@ -186,7 +250,8 @@ export default function UserDashboard() {
               </p>
             </div>
           )}
-        </div>
+          </div>
+        )}
 
         {/* Saved Favorites Section */}
         <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 mb-6">

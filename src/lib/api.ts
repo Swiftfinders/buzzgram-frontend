@@ -100,3 +100,15 @@ export const getMyQuotes = async () => {
   const { data } = await api.get('/general-quotes/my-quotes');
   return data.data;
 };
+
+// Delete a general quote
+export const deleteGeneralQuote = async (quoteId: number) => {
+  const { data } = await api.delete(`/general-quotes/${quoteId}`);
+  return data;
+};
+
+// Delete a business quote
+export const deleteBusinessQuote = async (quoteId: number) => {
+  const { data } = await api.delete(`/quote-requests/${quoteId}`);
+  return data;
+};

@@ -130,3 +130,15 @@ export const getAllBusinessQuotes = async () => {
   const { data } = await api.get('/quote-requests');
   return data.data;
 };
+
+// Admin: Delete a business
+export const deleteBusiness = async (businessId: number) => {
+  const { data } = await api.delete(`/admin/businesses/${businessId}`);
+  return data;
+};
+
+// Admin: Update business status (pause/unpause)
+export const updateBusinessStatus = async (businessId: number, status: string) => {
+  const { data } = await api.put(`/admin/businesses/${businessId}`, { status });
+  return data;
+};

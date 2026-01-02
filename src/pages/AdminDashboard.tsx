@@ -1,8 +1,19 @@
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
+import { getAdminStats } from '../lib/api';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['adminStats'],
+    queryFn: getAdminStats,
+    refetchInterval: 30000, // Refetch every 30 seconds for real-time data
+  });
+
+  if (isLoading) return <LoadingSpinner />;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-bg">
@@ -30,7 +41,7 @@ export default function AdminDashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Businesses</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">998</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats?.totalBusinesses || 0}</p>
               </div>
             </div>
           </div>
@@ -46,7 +57,7 @@ export default function AdminDashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">-</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats?.totalUsers || 0}</p>
               </div>
             </div>
           </div>
@@ -56,13 +67,16 @@ export default function AdminDashboard() {
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
                   <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Cities</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">10</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Quotes Received</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats?.totalQuotes || 0}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {stats?.generalQuotes || 0} general · {stats?.businessQuotes || 0} business
+                </p>
               </div>
             </div>
           </div>

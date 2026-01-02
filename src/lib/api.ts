@@ -112,3 +112,9 @@ export const deleteBusinessQuote = async (quoteId: number) => {
   const { data } = await api.delete(`/quote-requests/${quoteId}`);
   return data;
 };
+
+// Admin: Get dashboard statistics
+export const getAdminStats = async () => {
+  const { data } = await api.get('/admin/stats');
+  return data.data;
+};

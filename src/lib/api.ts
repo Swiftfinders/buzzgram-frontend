@@ -118,3 +118,15 @@ export const getAdminStats = async () => {
   const { data } = await api.get('/admin/stats');
   return data.data;
 };
+
+// Admin: Get all users
+export const getAllUsers = async () => {
+  const { data } = await api.get('/admin/users');
+  return data.data;
+};
+
+// Admin: Get all business quote requests
+export const getAllBusinessQuotes = async () => {
+  const { data } = await api.get('/quote-requests');
+  return data.data;
+};

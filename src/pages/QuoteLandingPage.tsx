@@ -1,14 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { getCities, getCategories, getSubcategories } from '../lib/api';
 import { api } from '../lib/api';
 
 export default function QuoteLandingPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   // Form state
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);

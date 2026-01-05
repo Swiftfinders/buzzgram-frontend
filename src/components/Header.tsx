@@ -50,9 +50,9 @@ export default function Header() {
             {/* City Selector */}
             <CitySelector />
 
-            {/* Search Bar - Only on City Pages */}
+            {/* Search Bar - Only on City Pages, Hidden on Mobile */}
             {isCityPage && (
-              <div className="relative w-64">
+              <div className="relative w-48 lg:w-64 hidden md:block">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg className="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

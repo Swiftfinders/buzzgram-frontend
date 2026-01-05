@@ -51,14 +51,15 @@ export default function QuoteLandingPage() {
       setFormSuccess(true);
       setFormError('');
       // Reset form
+      setSelectedCityId(null);
       setSelectedCategoryId('');
       setSelectedSubcategoryId('');
       setServiceDescription('');
       setBudget('');
+      setPhone('');
       if (!user) {
         setName('');
         setEmail('');
-        setPhone('');
       }
       // Scroll to success message
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -73,8 +74,18 @@ export default function QuoteLandingPage() {
     e.preventDefault();
     setFormError('');
 
+    if (!selectedCityId) {
+      setFormError('Please select a city');
+      return;
+    }
+
     if (!selectedCategoryId || !selectedSubcategoryId) {
       setFormError('Please select both category and subcategory');
+      return;
+    }
+
+    if (!phone) {
+      setFormError('Please provide a phone number');
       return;
     }
 
@@ -83,7 +94,7 @@ export default function QuoteLandingPage() {
       subcategoryId: parseInt(selectedSubcategoryId),
       name,
       email,
-      phone: phone || undefined,
+      phone,
       message: `${serviceDescription}${budget ? `\n\nBudget: ${budget}` : ''}`,
     });
   };
@@ -113,30 +124,9 @@ export default function QuoteLandingPage() {
               Find Multiple Service Providers <br className="hidden sm:block" />
               <span className="text-[#ff6b35]">in One Quote</span>
             </h1>
-            <p className="text-xl sm:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl sm:text-2xl text-gray-300 max-w-3xl mx-auto">
               Beauty, Food & Events specialists in your city. Compare quotes and find the perfect fit.
             </p>
-
-            {/* City Selector */}
-            <div className="flex justify-center">
-              <div className="inline-block">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Select Your City
-                </label>
-                <select
-                  value={selectedCityId || ''}
-                  onChange={(e) => setSelectedCityId(Number(e.target.value))}
-                  className="px-6 py-3 border border-slate-600 rounded-lg bg-slate-800 text-white text-lg focus:outline-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent min-w-[200px]"
-                >
-                  <option value="">Choose a city</option>
-                  {cities?.map((city) => (
-                    <option key={city.id} value={city.id}>
-                      {city.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -328,6 +318,27 @@ export default function QuoteLandingPage() {
                 </div>
               )}
 
+              {/* City Selector */}
+              <div>
+                <label htmlFor="city" className="block text-sm font-medium text-gray-300 mb-2">
+                  Select Your City <span className="text-[#ff6b35]">*</span>
+                </label>
+                <select
+                  id="city"
+                  required
+                  value={selectedCityId || ''}
+                  onChange={(e) => setSelectedCityId(Number(e.target.value))}
+                  className="w-full px-4 py-3 border border-slate-600 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent"
+                >
+                  <option value="">Choose a city</option>
+                  {cities?.map((city) => (
+                    <option key={city.id} value={city.id}>
+                      {city.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Service Category */}
               <div>
                 <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-2">
@@ -410,11 +421,12 @@ export default function QuoteLandingPage() {
               {/* Phone */}
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
-                  Phone
+                  Phone <span className="text-[#ff6b35]">*</span>
                 </label>
                 <input
                   id="phone"
                   type="tel"
+                  required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full px-4 py-3 border border-slate-600 rounded-lg bg-slate-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent"

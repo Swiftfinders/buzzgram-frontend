@@ -15,6 +15,8 @@ import UserDashboard from './pages/UserDashboard';
 import SettingsPage from './pages/SettingsPage';
 import FavoritesPage from './pages/FavoritesPage';
 import ProfilePage from './pages/ProfilePage';
+import QuoteLandingPage from './pages/QuoteLandingPage';
+import BusinessSignupPage from './pages/BusinessSignupPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -30,6 +32,8 @@ function App() {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/city/:cityId" element={<CityPage />} />
                   <Route path="/business/:id" element={<BusinessDetail />} />
+                  <Route path="/quote" element={<QuoteLandingPage />} />
+                  <Route path="/business-signup" element={<BusinessSignupPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route

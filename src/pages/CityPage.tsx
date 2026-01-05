@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getBusinesses, getCategories, getCities, getSubcategories } from '../lib/api';
 import BusinessCard from '../components/BusinessCard';
@@ -9,9 +9,12 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function CityPage() {
   const { cityId } = useParams<{ cityId: string }>();
+  const [searchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<number | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+
+  // Get search term from URL params
+  const searchTerm = searchParams.get('search') || '';
 
   useQuery({
     queryKey: ['cities'],
@@ -80,26 +83,10 @@ export default function CityPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-dark-bg">
-      {/* Search and Filters */}
+      {/* Filters */}
       <div className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-dark-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-6">
-            {/* Search Bar */}
-            <div className="relative max-w-2xl">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Search businesses by name or description..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-3 pl-11 border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-              />
-            </div>
-
             {/* Category Pills */}
             {categories && (
               <CategoryFilter

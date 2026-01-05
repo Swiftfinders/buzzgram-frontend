@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
@@ -9,7 +9,22 @@ import GeneralQuoteModal from './GeneralQuoteModal';
 export default function Header() {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+
+  // Check if we're on a city page
+  const isCityPage = location.pathname.startsWith('/city/');
+  const searchTerm = searchParams.get('search') || '';
+
+  const handleSearchChange = (value: string) => {
+    if (value) {
+      searchParams.set('search', value);
+    } else {
+      searchParams.delete('search');
+    }
+    setSearchParams(searchParams);
+  };
 
   return (
     <>
@@ -34,6 +49,24 @@ export default function Header() {
 
             {/* City Selector */}
             <CitySelector />
+
+            {/* Search Bar - Only on City Pages */}
+            {isCityPage && (
+              <div className="relative w-64">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search businesses..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-full px-3 py-1.5 pl-9 text-sm border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex items-center space-x-3">

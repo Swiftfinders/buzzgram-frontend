@@ -73,6 +73,26 @@ export interface User {
   name: string;
   email: string;
   role: string;
+  userType: 'customer' | 'business_owner';
+  emailVerified: boolean;
+  businessName?: string | null;
+  instagramHandle?: string | null;
+  phone?: string | null;
+}
+
+export interface RegisterInput {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  name: string;
+  userType: 'customer' | 'business_owner';
+  businessName?: string;
+  instagramHandle?: string;
+  phone?: string;
+}
+
+export interface EmailVerificationInput {
+  token: string;
 }
 
 export interface GeneralQuote {

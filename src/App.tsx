@@ -17,6 +17,7 @@ import FavoritesPage from './pages/FavoritesPage';
 import ProfilePage from './pages/ProfilePage';
 import QuoteLandingPage from './pages/QuoteLandingPage';
 import BusinessSignupPage from './pages/BusinessSignupPage';
+import EmailVerificationPage from './pages/EmailVerificationPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
                   <Route path="/business-signup" element={<BusinessSignupPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/verify-email" element={<EmailVerificationPage />} />
                   <Route
                     path="/admin"
                     element={

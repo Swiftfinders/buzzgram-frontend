@@ -127,19 +127,19 @@ export default function RegisterPage() {
             )}
 
             <div className="space-y-3">
-              <Link
-                to="/login"
-                className="block w-full px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors text-center"
-              >
-                Go to Login
-              </Link>
               <button
                 onClick={handleResendVerification}
                 disabled={resending}
-                className="w-full px-6 py-3 border border-gray-300 dark:border-dark-border hover:border-orange-500 dark:hover:border-orange-500 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {resending ? 'Sending...' : 'Resend Verification Email'}
               </button>
+              <Link
+                to="/login"
+                className="block w-full px-6 py-3 border border-gray-300 dark:border-dark-border hover:border-orange-500 dark:hover:border-orange-500 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors text-center"
+              >
+                Go to Login
+              </Link>
             </div>
           </div>
         </div>

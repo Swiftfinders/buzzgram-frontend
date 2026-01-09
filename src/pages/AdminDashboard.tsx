@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { getAdminStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus } from '../lib/api';
+import { getAdminStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus } from '../lib/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function AdminDashboard() {
@@ -14,6 +14,8 @@ export default function AdminDashboard() {
   const [businessSearch, setBusinessSearch] = useState('');
   const [deletingBusinessId, setDeletingBusinessId] = useState<number | null>(null);
   const [togglingBusinessId, setTogglingBusinessId] = useState<number | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
+  const [togglingUserId, setTogglingUserId] = useState<number | null>(null);
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['adminStats'],
@@ -86,6 +88,48 @@ export default function AdminDashboard() {
     const newStatus = currentStatus === 'active' ? 'paused' : 'active';
     setTogglingBusinessId(businessId);
     toggleStatusMutation.mutate({ businessId, status: newStatus });
+  };
+
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: deleteUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminStats'] });
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      setDeletingUserId(null);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Failed to delete user');
+      setDeletingUserId(null);
+    },
+  });
+
+  // Toggle user status mutation
+  const toggleUserStatusMutation = useMutation({
+    mutationFn: ({ userId, status }: { userId: number; status: string }) =>
+      updateUserStatus(userId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminStats'] });
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      setTogglingUserId(null);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Failed to update user status');
+      setTogglingUserId(null);
+    },
+  });
+
+  const handleDeleteUser = (userId: number, userName: string, userEmail: string) => {
+    if (window.confirm(`Are you sure you want to delete "${userName}" (${userEmail})? This action cannot be undone.`)) {
+      setDeletingUserId(userId);
+      deleteUserMutation.mutate(userId);
+    }
+  };
+
+  const handleToggleUserStatus = (userId: number, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'paused' : 'active';
+    setTogglingUserId(userId);
+    toggleUserStatusMutation.mutate({ userId, status: newStatus });
   };
 
   if (isLoading) return <LoadingSpinner />;
@@ -352,7 +396,9 @@ export default function AdminDashboard() {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joined</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-dark-border">
@@ -364,13 +410,72 @@ export default function AdminDashboard() {
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
                           user.role === 'admin'
                             ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400'
+                            : user.role === 'business_owner'
+                            ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-400'
                             : 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400'
                         }`}>
-                          {user.role}
+                          {user.role === 'business_owner' ? 'Business Owner' : user.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          user.status === 'active'
+                            ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+                            : 'bg-gray-100 dark:bg-gray-900/20 text-gray-800 dark:text-gray-400'
+                        }`}>
+                          {user.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                         {new Date(user.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <div className="flex gap-2">
+                          {/* Pause/Unpause Button */}
+                          <button
+                            onClick={() => handleToggleUserStatus(user.id, user.status || 'active')}
+                            disabled={togglingUserId === user.id || user.role === 'admin'}
+                            className={`p-2 rounded-lg text-sm font-medium transition-colors ${
+                              user.status === 'active'
+                                ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/30'
+                                : 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/30'
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            title={user.role === 'admin' ? 'Cannot pause admin users' : (user.status === 'active' ? 'Pause user' : 'Activate user')}
+                          >
+                            {togglingUserId === user.id ? (
+                              <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                            ) : user.status === 'active' ? (
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            ) : (
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            )}
+                          </button>
+
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => handleDeleteUser(user.id, user.name, user.email)}
+                            disabled={deletingUserId === user.id || user.role === 'admin'}
+                            className="p-2 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/30 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={user.role === 'admin' ? 'Cannot delete admin users' : 'Delete user'}
+                          >
+                            {deletingUserId === user.id ? (
+                              <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                            ) : (
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

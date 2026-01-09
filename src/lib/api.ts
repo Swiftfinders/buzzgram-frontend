@@ -142,3 +142,15 @@ export const updateBusinessStatus = async (businessId: number, status: string) =
   const { data } = await api.put(`/admin/businesses/${businessId}`, { status });
   return data;
 };
+
+// Admin: Delete a user
+export const deleteUser = async (userId: number) => {
+  const { data } = await api.delete(`/admin/users/${userId}`);
+  return data;
+};
+
+// Admin: Update user status (pause/unpause)
+export const updateUserStatus = async (userId: number, status: string) => {
+  const { data } = await api.put(`/admin/users/${userId}/status`, { status });
+  return data;
+};

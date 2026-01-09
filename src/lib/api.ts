@@ -154,3 +154,32 @@ export const updateUserStatus = async (userId: number, status: string) => {
   const { data } = await api.put(`/admin/users/${userId}/status`, { status });
   return data;
 };
+
+// Business Claims
+export const submitBusinessClaim = async (claimData: {
+  businessId: number;
+  name: string;
+  email: string;
+  phone: string;
+}) => {
+  const { data } = await api.post('/business-claims', claimData);
+  return data;
+};
+
+// Admin: Get all business claims
+export const getBusinessClaims = async () => {
+  const { data } = await api.get('/admin/business-claims');
+  return data.data;
+};
+
+// Admin: Approve business claim
+export const approveBusinessClaim = async (claimId: number) => {
+  const { data } = await api.put(`/admin/business-claims/${claimId}/approve`);
+  return data;
+};
+
+// Admin: Reject business claim
+export const rejectBusinessClaim = async (claimId: number) => {
+  const { data } = await api.put(`/admin/business-claims/${claimId}/reject`);
+  return data;
+};

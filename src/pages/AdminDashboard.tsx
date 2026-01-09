@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { getAdminStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus } from '../lib/api';
+import { getAdminStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus, getBusinessClaims, approveBusinessClaim, rejectBusinessClaim } from '../lib/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function AdminDashboard() {
@@ -11,11 +11,13 @@ export default function AdminDashboard() {
   const [showBusinesses, setShowBusinesses] = useState(false);
   const [showUsers, setShowUsers] = useState(false);
   const [showQuotes, setShowQuotes] = useState(false);
+  const [showClaims, setShowClaims] = useState(false);
   const [businessSearch, setBusinessSearch] = useState('');
   const [deletingBusinessId, setDeletingBusinessId] = useState<number | null>(null);
   const [togglingBusinessId, setTogglingBusinessId] = useState<number | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
   const [togglingUserId, setTogglingUserId] = useState<number | null>(null);
+  const [processingClaimId, setProcessingClaimId] = useState<number | null>(null);
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['adminStats'],
@@ -39,6 +41,12 @@ export default function AdminDashboard() {
     queryKey: ['allBusinessQuotes'],
     queryFn: getAllBusinessQuotes,
     enabled: showQuotes,
+  });
+
+  const { data: businessClaims } = useQuery({
+    queryKey: ['businessClaims'],
+    queryFn: getBusinessClaims,
+    enabled: showClaims,
   });
 
   // Search businesses query - only fetch when search is not empty
@@ -132,6 +140,47 @@ export default function AdminDashboard() {
     toggleUserStatusMutation.mutate({ userId, status: newStatus });
   };
 
+  // Approve claim mutation
+  const approveClaimMutation = useMutation({
+    mutationFn: approveBusinessClaim,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['businessClaims'] });
+      queryClient.invalidateQueries({ queryKey: ['adminStats'] });
+      setProcessingClaimId(null);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Failed to approve claim');
+      setProcessingClaimId(null);
+    },
+  });
+
+  // Reject claim mutation
+  const rejectClaimMutation = useMutation({
+    mutationFn: rejectBusinessClaim,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['businessClaims'] });
+      setProcessingClaimId(null);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Failed to reject claim');
+      setProcessingClaimId(null);
+    },
+  });
+
+  const handleApproveClaim = (claimId: number, businessName: string) => {
+    if (window.confirm(`Approve claim for "${businessName}"? This will link the business to the claiming user.`)) {
+      setProcessingClaimId(claimId);
+      approveClaimMutation.mutate(claimId);
+    }
+  };
+
+  const handleRejectClaim = (claimId: number, businessName: string) => {
+    if (window.confirm(`Reject claim for "${businessName}"? The user will be notified.`)) {
+      setProcessingClaimId(claimId);
+      rejectClaimMutation.mutate(claimId);
+    }
+  };
+
   if (isLoading) return <LoadingSpinner />;
 
   return (
@@ -148,7 +197,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <button
             onClick={() => setShowBusinesses(!showBusinesses)}
             className="w-full bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 hover:border-orange-500 dark:hover:border-orange-500 transition-all cursor-pointer text-left"
@@ -219,6 +268,35 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <svg className={`w-5 h-5 text-gray-400 transition-transform ${showQuotes ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setShowClaims(!showClaims)}
+            className="w-full bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 hover:border-purple-500 dark:hover:border-purple-500 transition-all cursor-pointer text-left"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Business Claims</p>
+                  <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                    {businessClaims?.filter((c: any) => c.status === 'pending').length || 0}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Pending review
+                  </p>
+                </div>
+              </div>
+              <svg className={`w-5 h-5 text-gray-400 transition-transform ${showClaims ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
@@ -546,6 +624,145 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Expandable Business Claims */}
+        {showClaims && (
+          <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Business Claims ({businessClaims?.length || 0})
+            </h3>
+
+            {businessClaims && businessClaims.length > 0 ? (
+              <div className="space-y-4">
+                {businessClaims.map((claim: any) => (
+                  <div
+                    key={claim.id}
+                    className={`p-5 rounded-lg border-2 ${
+                      claim.status === 'pending'
+                        ? 'border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/10'
+                        : claim.status === 'approved'
+                        ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/10'
+                        : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/10'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
+                          {claim.business?.name || 'Unknown Business'}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {claim.business?.city?.name} • {claim.business?.category?.name}
+                        </p>
+                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          claim.status === 'pending'
+                            ? 'bg-yellow-200 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+                            : claim.status === 'approved'
+                            ? 'bg-green-200 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                            : 'bg-red-200 dark:bg-red-900/30 text-red-800 dark:text-red-400'
+                        }`}
+                      >
+                        {claim.status}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                      <div className="bg-white dark:bg-dark-bg rounded p-3">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Claimant</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{claim.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{claim.email}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{claim.phone}</p>
+                      </div>
+
+                      <div className="bg-white dark:bg-dark-bg rounded p-3">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">User Account</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{claim.user?.name || 'N/A'}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{claim.user?.email || 'N/A'}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mb-3">
+                      <span>Submitted: {new Date(claim.createdAt).toLocaleString()}</span>
+                      {claim.status !== 'pending' && claim.reviewedAt && (
+                        <span>
+                          {claim.status === 'approved' ? 'Approved' : 'Rejected'}: {new Date(claim.reviewedAt).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+
+                    {claim.status === 'pending' && (
+                      <div className="flex gap-3 pt-3 border-t border-gray-200 dark:border-dark-border">
+                        <button
+                          onClick={() => handleApproveClaim(claim.id, claim.business?.name)}
+                          disabled={processingClaimId === claim.id}
+                          className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {processingClaimId === claim.id ? (
+                            <>
+                              <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              Approve Claim
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleRejectClaim(claim.id, claim.business?.name)}
+                          disabled={processingClaimId === claim.id}
+                          className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {processingClaimId === claim.id ? (
+                            <>
+                              <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                              Reject Claim
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+
+                    {claim.status !== 'pending' && claim.reviewer && (
+                      <div className="pt-3 border-t border-gray-200 dark:border-dark-border">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Reviewed by: {claim.reviewer.name} ({claim.reviewer.email})
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  No Business Claims
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  There are no business claims to review at the moment.
+                </p>
+              </div>
+            )}
           </div>
         )}
 

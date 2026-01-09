@@ -18,6 +18,7 @@ import ProfilePage from './pages/ProfilePage';
 import QuoteLandingPage from './pages/QuoteLandingPage';
 import BusinessSignupPage from './pages/BusinessSignupPage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
+import ClaimBusinessPage from './pages/ClaimBusinessPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -51,6 +52,14 @@ function App() {
                     element={
                       <ProtectedRoute requireBusinessOwner>
                         <BusinessOwnerDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/claim-business"
+                    element={
+                      <ProtectedRoute>
+                        <ClaimBusinessPage />
                       </ProtectedRoute>
                     }
                   />

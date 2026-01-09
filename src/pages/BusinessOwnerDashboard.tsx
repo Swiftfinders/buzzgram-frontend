@@ -37,7 +37,7 @@ export default function BusinessOwnerDashboard() {
                 If your business is already listed on BuzzGram, claim it to get access to your dashboard and start managing reviews and quote requests.
               </p>
               <Link
-                to="/"
+                to="/claim-business"
                 className="inline-block px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
               >
                 Search for Your Business

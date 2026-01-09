@@ -189,3 +189,15 @@ export const getOwnedBusinesses = async () => {
   const { data } = await api.get('/owner/businesses');
   return data.data;
 };
+
+// User: Change password
+export const changePassword = async (currentPassword: string, newPassword: string) => {
+  const { data } = await api.put('/auth/change-password', { currentPassword, newPassword });
+  return data;
+};
+
+// User: Delete own account
+export const deleteOwnAccount = async (password: string) => {
+  const { data } = await api.delete('/auth/delete-account', { data: { password } });
+  return data;
+};

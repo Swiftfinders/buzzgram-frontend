@@ -116,6 +116,8 @@ export interface GeneralQuote {
   user?: User;
   category?: Category;
   subcategory?: Subcategory;
+  categories?: Category[];
+  subcategories?: Subcategory[];
 }
 
 export interface GoogleCredentialResponse {

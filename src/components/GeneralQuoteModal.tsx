@@ -22,8 +22,8 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [subcategoryId, setSubcategoryId] = useState('');
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+  const [selectedSubcategoryIds, setSelectedSubcategoryIds] = useState<number[]>([]);
   const [budget, setBudget] = useState('');
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([
     { date: '', timeSlot: 'morning' }
@@ -44,10 +44,36 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
     queryFn: getSubcategories,
   });
 
-  // Filter subcategories by selected category
-  const filteredSubcategories = subcategories?.filter(
-    (sub) => sub.categoryId === parseInt(categoryId)
-  );
+  // Helper functions for category/subcategory selection
+  const toggleCategory = (categoryId: number) => {
+    if (selectedCategoryIds.includes(categoryId)) {
+      // Remove category and its subcategories
+      setSelectedCategoryIds(prev => prev.filter(id => id !== categoryId));
+      setSelectedSubcategoryIds(prev =>
+        prev.filter(subId => {
+          const subcategory = subcategories?.find(s => s.id === subId);
+          return subcategory?.categoryId !== categoryId;
+        })
+      );
+    } else {
+      // Add category (max 5)
+      if (selectedCategoryIds.length < 5) {
+        setSelectedCategoryIds(prev => [...prev, categoryId]);
+      }
+    }
+  };
+
+  const toggleSubcategory = (subcategoryId: number) => {
+    if (selectedSubcategoryIds.includes(subcategoryId)) {
+      setSelectedSubcategoryIds(prev => prev.filter(id => id !== subcategoryId));
+    } else {
+      setSelectedSubcategoryIds(prev => [...prev, subcategoryId]);
+    }
+  };
+
+  const getSubcategoriesForCategory = (categoryId: number) => {
+    return subcategories?.filter(sub => sub.categoryId === categoryId) || [];
+  };
 
   // Pre-fill user data when modal opens
   useEffect(() => {
@@ -75,6 +101,12 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
       return;
     }
 
+    // Validate at least one category selected
+    if (selectedCategoryIds.length === 0) {
+      setError('Please select at least one category');
+      return;
+    }
+
     // Validate at least one availability slot
     const validSlots = availability.filter(slot => slot.date !== '');
     if (validSlots.length === 0) {
@@ -93,8 +125,8 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
           name,
           email,
           phone: phone || undefined,
-          categoryId: parseInt(categoryId),
-          subcategoryId: subcategoryId ? parseInt(subcategoryId) : undefined,
+          categoryIds: selectedCategoryIds,
+          subcategoryIds: selectedSubcategoryIds.length > 0 ? selectedSubcategoryIds : undefined,
           budget: budget || undefined,
           availability: JSON.stringify(validSlots),
           message: message || undefined,
@@ -127,8 +159,8 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
     setName(user?.name || '');
     setEmail(user?.email || '');
     setPhone('');
-    setCategoryId('');
-    setSubcategoryId('');
+    setSelectedCategoryIds([]);
+    setSelectedSubcategoryIds([]);
     setBudget('');
     setAvailability([{ date: '', timeSlot: 'morning' }]);
     setMessage('');
@@ -245,51 +277,72 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
                   />
                 </div>
 
-                {/* Category Dropdown */}
+                {/* Category & Subcategory Checkboxes */}
                 <div>
-                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Service Category <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Service Categories <span className="text-red-500">*</span>
+                    <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
+                      ({selectedCategoryIds.length}/5 selected)
+                    </span>
                   </label>
-                  <select
-                    id="category"
-                    required
-                    value={categoryId}
-                    onChange={(e) => {
-                      setCategoryId(e.target.value);
-                      setSubcategoryId(''); // Reset subcategory
-                    }}
-                    className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-dark-border text-gray-900 dark:text-white bg-white dark:bg-dark-bg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  >
-                    <option value="">Select a category</option>
-                    {categories?.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
 
-                {/* Subcategory Dropdown */}
-                {categoryId && (
-                  <div>
-                    <label htmlFor="subcategory" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Service Subcategory
-                    </label>
-                    <select
-                      id="subcategory"
-                      value={subcategoryId}
-                      onChange={(e) => setSubcategoryId(e.target.value)}
-                      className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-dark-border text-gray-900 dark:text-white bg-white dark:bg-dark-bg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    >
-                      <option value="">Select a subcategory (optional)</option>
-                      {filteredSubcategories?.map((sub) => (
-                        <option key={sub.id} value={sub.id}>
-                          {sub.name}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="border border-gray-300 dark:border-dark-border rounded-lg p-4 max-h-96 overflow-y-auto bg-white dark:bg-dark-bg">
+                    {categories?.map((category) => {
+                      const isSelected = selectedCategoryIds.includes(category.id);
+                      const isDisabled = !isSelected && selectedCategoryIds.length >= 5;
+                      const categorySubcategories = getSubcategoriesForCategory(category.id);
+
+                      return (
+                        <div key={category.id} className="mb-3">
+                          {/* Category checkbox */}
+                          <label className={`flex items-center p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              disabled={isDisabled}
+                              onChange={() => toggleCategory(category.id)}
+                              className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                            />
+                            <span className="ml-3 text-gray-900 dark:text-white font-medium">
+                              {category.name}
+                            </span>
+                          </label>
+
+                          {/* Subcategories indented below */}
+                          {isSelected && categorySubcategories.length > 0 && (
+                            <div className="ml-8 mt-2 space-y-1">
+                              {categorySubcategories.map((subcategory) => (
+                                <label key={subcategory.id} className="flex items-center p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedSubcategoryIds.includes(subcategory.id)}
+                                    onChange={() => toggleSubcategory(subcategory.id)}
+                                    className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                                  />
+                                  <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">
+                                    {subcategory.name}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
+
+                  {selectedCategoryIds.length === 0 && (
+                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                      Select at least one category to get started
+                    </p>
+                  )}
+
+                  {selectedCategoryIds.length >= 5 && (
+                    <p className="mt-2 text-sm text-orange-600 dark:text-orange-400">
+                      Maximum of 5 categories reached
+                    </p>
+                  )}
+                </div>
 
                 {/* Budget Field */}
                 <div>

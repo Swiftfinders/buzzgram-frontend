@@ -10,8 +10,8 @@ export default function QuoteLandingPage() {
 
   // Form state
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState('');
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+  const [selectedSubcategoryIds, setSelectedSubcategoryIds] = useState<number[]>([]);
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState('');
@@ -36,15 +36,46 @@ export default function QuoteLandingPage() {
     queryFn: getSubcategories,
   });
 
-  // Filter subcategories by selected category
-  const filteredSubcategories = subcategories?.filter(
-    (sub) => sub.categoryId === parseInt(selectedCategoryId)
-  );
+  // Helper functions for category/subcategory selection
+  const toggleCategory = (categoryId: number) => {
+    if (selectedCategoryIds.includes(categoryId)) {
+      // Remove category and its subcategories
+      setSelectedCategoryIds(prev => prev.filter(id => id !== categoryId));
+      setSelectedSubcategoryIds(prev =>
+        prev.filter(subId => {
+          const subcategory = subcategories?.find(s => s.id === subId);
+          return subcategory?.categoryId !== categoryId;
+        })
+      );
+    } else {
+      // Add category (max 5)
+      if (selectedCategoryIds.length < 5) {
+        setSelectedCategoryIds(prev => [...prev, categoryId]);
+      }
+    }
+  };
+
+  const toggleSubcategory = (subcategoryId: number) => {
+    if (selectedSubcategoryIds.includes(subcategoryId)) {
+      setSelectedSubcategoryIds(prev => prev.filter(id => id !== subcategoryId));
+    } else {
+      setSelectedSubcategoryIds(prev => [...prev, subcategoryId]);
+    }
+  };
+
+  const getSubcategoriesForCategory = (categoryId: number) => {
+    return subcategories?.filter(sub => sub.categoryId === categoryId) || [];
+  };
 
   // Submit quote mutation
   const submitQuoteMutation = useMutation({
     mutationFn: async (quoteData: any) => {
-      const { data } = await api.post('/general-quotes', quoteData);
+      const token = localStorage.getItem('token');
+      const { data } = await api.post('/general-quotes', quoteData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return data;
     },
     onSuccess: () => {
@@ -52,8 +83,8 @@ export default function QuoteLandingPage() {
       setFormError('');
       // Reset form
       setSelectedCityId(null);
-      setSelectedCategoryId('');
-      setSelectedSubcategoryId('');
+      setSelectedCategoryIds([]);
+      setSelectedSubcategoryIds([]);
       setServiceDescription('');
       setBudget('');
       setPhone('');
@@ -74,13 +105,13 @@ export default function QuoteLandingPage() {
     e.preventDefault();
     setFormError('');
 
-    if (!selectedCityId) {
-      setFormError('Please select a city');
+    if (!user) {
+      setFormError('Please sign up or login to submit a quote request.');
       return;
     }
 
-    if (!selectedCategoryId || !selectedSubcategoryId) {
-      setFormError('Please select both category and subcategory');
+    if (selectedCategoryIds.length === 0) {
+      setFormError('Please select at least one category');
       return;
     }
 
@@ -89,13 +120,23 @@ export default function QuoteLandingPage() {
       return;
     }
 
+    // Create availability slot for next day morning (placeholder)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const availabilitySlot = [{
+      date: tomorrow.toISOString().split('T')[0],
+      timeSlot: 'morning'
+    }];
+
     submitQuoteMutation.mutate({
-      categoryId: parseInt(selectedCategoryId),
-      subcategoryId: parseInt(selectedSubcategoryId),
+      categoryIds: selectedCategoryIds,
+      subcategoryIds: selectedSubcategoryIds.length > 0 ? selectedSubcategoryIds : undefined,
       name,
       email,
       phone,
-      message: `${serviceDescription}${budget ? `\n\nBudget: ${budget}` : ''}`,
+      budget: budget || undefined,
+      availability: JSON.stringify(availabilitySlot),
+      message: serviceDescription || undefined,
     });
   };
 
@@ -108,8 +149,10 @@ export default function QuoteLandingPage() {
 
   const handleCategoryCardClick = (categoryName: string) => {
     const category = categories?.find(c => c.name === categoryName);
-    if (category) {
-      setSelectedCategoryId(category.id.toString());
+    if (category && !selectedCategoryIds.includes(category.id)) {
+      if (selectedCategoryIds.length < 5) {
+        setSelectedCategoryIds(prev => [...prev, category.id]);
+      }
       scrollToForm();
     }
   };
@@ -312,6 +355,22 @@ export default function QuoteLandingPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
+              {!user && (
+                <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4">
+                  <p className="text-yellow-200">
+                    Please{' '}
+                    <Link to="/login" className="text-[#ff6b35] hover:underline font-medium">
+                      login
+                    </Link>
+                    {' or '}
+                    <Link to="/register" className="text-[#ff6b35] hover:underline font-medium">
+                      sign up
+                    </Link>
+                    {' to submit a quote request.'}
+                  </p>
+                </div>
+              )}
+
               {formError && (
                 <div className="bg-red-900/30 border border-red-700 rounded-lg p-4">
                   <p className="text-red-200">{formError}</p>
@@ -339,52 +398,72 @@ export default function QuoteLandingPage() {
                 </select>
               </div>
 
-              {/* Service Category */}
+              {/* Service Categories & Subcategories */}
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-2">
-                  Service Category <span className="text-[#ff6b35]">*</span>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Service Categories <span className="text-[#ff6b35]">*</span>
+                  <span className="ml-2 text-sm font-normal text-gray-400">
+                    ({selectedCategoryIds.length}/5 selected)
+                  </span>
                 </label>
-                <select
-                  id="category"
-                  required
-                  value={selectedCategoryId}
-                  onChange={(e) => {
-                    setSelectedCategoryId(e.target.value);
-                    setSelectedSubcategoryId('');
-                  }}
-                  className="w-full px-4 py-3 border border-slate-600 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent"
-                >
-                  <option value="">Select a category</option>
-                  {categories?.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
-              {/* Subcategory */}
-              {selectedCategoryId && (
-                <div>
-                  <label htmlFor="subcategory" className="block text-sm font-medium text-gray-300 mb-2">
-                    Subcategory <span className="text-[#ff6b35]">*</span>
-                  </label>
-                  <select
-                    id="subcategory"
-                    required
-                    value={selectedSubcategoryId}
-                    onChange={(e) => setSelectedSubcategoryId(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-600 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent"
-                  >
-                    <option value="">Select a subcategory</option>
-                    {filteredSubcategories?.map((sub) => (
-                      <option key={sub.id} value={sub.id}>
-                        {sub.name}
-                      </option>
-                    ))}
-                  </select>
+                <div className="border border-slate-600 rounded-lg p-4 max-h-96 overflow-y-auto bg-slate-800">
+                  {categories?.map((category) => {
+                    const isSelected = selectedCategoryIds.includes(category.id);
+                    const isDisabled = !isSelected && selectedCategoryIds.length >= 5;
+                    const categorySubcategories = getSubcategoriesForCategory(category.id);
+
+                    return (
+                      <div key={category.id} className="mb-3">
+                        {/* Category checkbox */}
+                        <label className={`flex items-center p-2 rounded hover:bg-slate-700 cursor-pointer ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            disabled={isDisabled}
+                            onChange={() => toggleCategory(category.id)}
+                            className="w-4 h-4 text-[#ff6b35] border-gray-300 rounded focus:ring-[#ff6b35]"
+                          />
+                          <span className="ml-3 text-white font-medium">
+                            {category.name}
+                          </span>
+                        </label>
+
+                        {/* Subcategories indented below */}
+                        {isSelected && categorySubcategories.length > 0 && (
+                          <div className="ml-8 mt-2 space-y-1">
+                            {categorySubcategories.map((subcategory) => (
+                              <label key={subcategory.id} className="flex items-center p-2 rounded hover:bg-slate-700 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedSubcategoryIds.includes(subcategory.id)}
+                                  onChange={() => toggleSubcategory(subcategory.id)}
+                                  className="w-4 h-4 text-[#ff6b35] border-gray-300 rounded focus:ring-[#ff6b35]"
+                                />
+                                <span className="ml-3 text-sm text-gray-300">
+                                  {subcategory.name}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
+
+                {selectedCategoryIds.length === 0 && (
+                  <p className="mt-2 text-sm text-gray-400">
+                    Select at least one category to get started
+                  </p>
+                )}
+
+                {selectedCategoryIds.length >= 5 && (
+                  <p className="mt-2 text-sm text-[#ff6b35]">
+                    Maximum of 5 categories reached
+                  </p>
+                )}
+              </div>
 
               {/* Name */}
               <div>
@@ -468,10 +547,10 @@ export default function QuoteLandingPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={submitQuoteMutation.isPending}
+                disabled={submitQuoteMutation.isPending || !user}
                 className="w-full py-4 bg-[#ff6b35] hover:bg-[#ff5722] text-white font-bold text-lg rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submitQuoteMutation.isPending ? 'Submitting...' : 'Request Quotes'}
+                {submitQuoteMutation.isPending ? 'Submitting...' : !user ? 'Login Required' : 'Request Quotes'}
               </button>
             </form>
           )}

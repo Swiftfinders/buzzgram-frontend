@@ -431,9 +431,9 @@ export default function QuoteLandingPage() {
 
               {/* Service Categories & Subcategories - Multi-Select Dropdown */}
               <div className="relative" ref={dropdownRef}>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Service Categories <span className="text-[#ff6b35]">*</span>
-                  <span className="ml-2 text-sm font-normal text-gray-400">
+                  <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
                     ({selectedCategoryIds.length}/5 selected)
                   </span>
                 </label>
@@ -442,9 +442,9 @@ export default function QuoteLandingPage() {
                 <button
                   type="button"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full px-4 py-3 border border-slate-600 rounded-lg bg-slate-800 text-white text-left focus:outline-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent flex items-center justify-between"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-left focus:outline-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent flex items-center justify-between"
                 >
-                  <span className={selectedCategoryIds.length === 0 ? 'text-gray-500' : 'text-white'}>
+                  <span className={selectedCategoryIds.length === 0 ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'}>
                     {selectedCategoryIds.length === 0 ? 'Select categories...' : `${selectedCategoryIds.length} ${selectedCategoryIds.length === 1 ? 'category' : 'categories'} selected`}
                   </span>
                   <svg
@@ -501,7 +501,7 @@ export default function QuoteLandingPage() {
 
                 {/* Dropdown Panel */}
                 {isDropdownOpen && (
-                  <div className="absolute z-10 w-full mt-2 border border-slate-600 rounded-lg bg-slate-800 shadow-xl max-h-96 overflow-y-auto">
+                  <div className="absolute z-10 w-full mt-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 shadow-xl max-h-96 overflow-y-auto">
                     <div className="p-4">
                       {categories?.map((category) => {
                         const isSelected = selectedCategoryIds.includes(category.id);
@@ -511,15 +511,18 @@ export default function QuoteLandingPage() {
                         return (
                           <div key={category.id} className="mb-3">
                             {/* Category checkbox */}
-                            <label className={`flex items-center p-2 rounded hover:bg-slate-700 cursor-pointer ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                            <label className={`flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
                               <input
                                 type="checkbox"
                                 checked={isSelected}
                                 disabled={isDisabled}
                                 onChange={() => toggleCategory(category.id)}
-                                className="w-4 h-4 text-[#ff6b35] border-gray-300 rounded focus:ring-[#ff6b35]"
+                                className="w-4 h-4 text-[#ff6b35] bg-white dark:bg-slate-700 border-gray-300 dark:border-gray-600 rounded focus:ring-[#ff6b35] focus:ring-2"
+                                style={{
+                                  accentColor: '#ff6b35'
+                                }}
                               />
-                              <span className="ml-3 text-white font-medium">
+                              <span className="ml-3 text-gray-900 dark:text-white font-medium">
                                 {category.name}
                               </span>
                             </label>
@@ -528,14 +531,17 @@ export default function QuoteLandingPage() {
                             {isSelected && categorySubcategories.length > 0 && (
                               <div className="ml-8 mt-2 space-y-1">
                                 {categorySubcategories.map((subcategory) => (
-                                  <label key={subcategory.id} className="flex items-center p-2 rounded hover:bg-slate-700 cursor-pointer">
+                                  <label key={subcategory.id} className="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer">
                                     <input
                                       type="checkbox"
                                       checked={selectedSubcategoryIds.includes(subcategory.id)}
                                       onChange={() => toggleSubcategory(subcategory.id)}
-                                      className="w-4 h-4 text-[#ff6b35] border-gray-300 rounded focus:ring-[#ff6b35]"
+                                      className="w-4 h-4 text-[#ff6b35] bg-white dark:bg-slate-700 border-gray-300 dark:border-gray-600 rounded focus:ring-[#ff6b35] focus:ring-2"
+                                      style={{
+                                        accentColor: '#ff6b35'
+                                      }}
                                     />
-                                    <span className="ml-3 text-sm text-gray-300">
+                                    <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">
                                       {subcategory.name}
                                     </span>
                                   </label>
@@ -548,9 +554,9 @@ export default function QuoteLandingPage() {
                     </div>
 
                     {/* Footer info */}
-                    <div className="border-t border-slate-600 p-3 bg-slate-900/50">
+                    <div className="border-t border-gray-200 dark:border-slate-600 p-3 bg-gray-50 dark:bg-slate-900/50">
                       {selectedCategoryIds.length === 0 ? (
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           Select at least one category to get started
                         </p>
                       ) : selectedCategoryIds.length >= 5 ? (
@@ -558,7 +564,7 @@ export default function QuoteLandingPage() {
                           Maximum of 5 categories reached
                         </p>
                       ) : (
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           You can select up to {5 - selectedCategoryIds.length} more {5 - selectedCategoryIds.length === 1 ? 'category' : 'categories'}
                         </p>
                       )}

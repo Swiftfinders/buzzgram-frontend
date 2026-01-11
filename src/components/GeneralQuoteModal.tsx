@@ -301,7 +301,10 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
                               checked={isSelected}
                               disabled={isDisabled}
                               onChange={() => toggleCategory(category.id)}
-                              className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                              className="w-4 h-4 text-orange-600 border-gray-300 dark:border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
+                              style={{
+                                accentColor: '#ff6b35'
+                              }}
                             />
                             <span className="ml-3 text-gray-900 dark:text-white font-medium">
                               {category.name}
@@ -317,7 +320,10 @@ export default function GeneralQuoteModal({ isOpen, onClose }: GeneralQuoteModal
                                     type="checkbox"
                                     checked={selectedSubcategoryIds.includes(subcategory.id)}
                                     onChange={() => toggleSubcategory(subcategory.id)}
-                                    className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                                    className="w-4 h-4 text-orange-600 border-gray-300 dark:border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
+                                    style={{
+                                      accentColor: '#ff6b35'
+                                    }}
                                   />
                                   <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">
                                     {subcategory.name}

@@ -88,6 +88,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
+
+    // Clear Google session to prevent auto-select
+    if (typeof window !== 'undefined' && window.google) {
+      window.google.accounts.id.disableAutoSelect();
+    }
   };
 
   const value = {

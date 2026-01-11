@@ -129,9 +129,6 @@ export default function LoginPage() {
 
           {/* Google Login Button */}
           <GoogleLoginButton
-            onSuccess={() => {
-              // Navigation handled in component
-            }}
             onError={(error) => setError(error)}
           />
         </form>

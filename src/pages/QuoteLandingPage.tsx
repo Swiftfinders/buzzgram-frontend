@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
@@ -19,6 +19,21 @@ export default function QuoteLandingPage() {
   const [budget, setBudget] = useState('');
   const [formSuccess, setFormSuccess] = useState(false);
   const [formError, setFormError] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Fetch data
   const { data: cities } = useQuery({
@@ -65,6 +80,22 @@ export default function QuoteLandingPage() {
 
   const getSubcategoriesForCategory = (categoryId: number) => {
     return subcategories?.filter(sub => sub.categoryId === categoryId) || [];
+  };
+
+  const removeCategory = (categoryId: number) => {
+    toggleCategory(categoryId);
+  };
+
+  const removeSubcategory = (subcategoryId: number) => {
+    toggleSubcategory(subcategoryId);
+  };
+
+  const getSelectedCategoryNames = () => {
+    return categories?.filter(cat => selectedCategoryIds.includes(cat.id)) || [];
+  };
+
+  const getSelectedSubcategoryNames = () => {
+    return subcategories?.filter(sub => selectedSubcategoryIds.includes(sub.id)) || [];
   };
 
   // Submit quote mutation
@@ -398,8 +429,8 @@ export default function QuoteLandingPage() {
                 </select>
               </div>
 
-              {/* Service Categories & Subcategories */}
-              <div>
+              {/* Service Categories & Subcategories - Multi-Select Dropdown */}
+              <div className="relative" ref={dropdownRef}>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Service Categories <span className="text-[#ff6b35]">*</span>
                   <span className="ml-2 text-sm font-normal text-gray-400">
@@ -407,61 +438,132 @@ export default function QuoteLandingPage() {
                   </span>
                 </label>
 
-                <div className="border border-slate-600 rounded-lg p-4 max-h-96 overflow-y-auto bg-slate-800">
-                  {categories?.map((category) => {
-                    const isSelected = selectedCategoryIds.includes(category.id);
-                    const isDisabled = !isSelected && selectedCategoryIds.length >= 5;
-                    const categorySubcategories = getSubcategoriesForCategory(category.id);
+                {/* Dropdown Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="w-full px-4 py-3 border border-slate-600 rounded-lg bg-slate-800 text-white text-left focus:outline-none focus:ring-2 focus:ring-[#ff6b35] focus:border-transparent flex items-center justify-between"
+                >
+                  <span className={selectedCategoryIds.length === 0 ? 'text-gray-500' : 'text-white'}>
+                    {selectedCategoryIds.length === 0 ? 'Select categories...' : `${selectedCategoryIds.length} ${selectedCategoryIds.length === 1 ? 'category' : 'categories'} selected`}
+                  </span>
+                  <svg
+                    className={`w-5 h-5 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
 
-                    return (
-                      <div key={category.id} className="mb-3">
-                        {/* Category checkbox */}
-                        <label className={`flex items-center p-2 rounded hover:bg-slate-700 cursor-pointer ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            disabled={isDisabled}
-                            onChange={() => toggleCategory(category.id)}
-                            className="w-4 h-4 text-[#ff6b35] border-gray-300 rounded focus:ring-[#ff6b35]"
-                          />
-                          <span className="ml-3 text-white font-medium">
-                            {category.name}
-                          </span>
-                        </label>
-
-                        {/* Subcategories indented below */}
-                        {isSelected && categorySubcategories.length > 0 && (
-                          <div className="ml-8 mt-2 space-y-1">
-                            {categorySubcategories.map((subcategory) => (
-                              <label key={subcategory.id} className="flex items-center p-2 rounded hover:bg-slate-700 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={selectedSubcategoryIds.includes(subcategory.id)}
-                                  onChange={() => toggleSubcategory(subcategory.id)}
-                                  className="w-4 h-4 text-[#ff6b35] border-gray-300 rounded focus:ring-[#ff6b35]"
-                                />
-                                <span className="ml-3 text-sm text-gray-300">
-                                  {subcategory.name}
-                                </span>
-                              </label>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {selectedCategoryIds.length === 0 && (
-                  <p className="mt-2 text-sm text-gray-400">
-                    Select at least one category to get started
-                  </p>
+                {/* Selected Items as Tags */}
+                {(selectedCategoryIds.length > 0 || selectedSubcategoryIds.length > 0) && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {/* Category Tags */}
+                    {getSelectedCategoryNames().map((category) => (
+                      <span
+                        key={`cat-${category.id}`}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[#ff6b35] text-white"
+                      >
+                        {category.name}
+                        <button
+                          type="button"
+                          onClick={() => removeCategory(category.id)}
+                          className="ml-2 hover:bg-[#ff5722] rounded-full p-0.5 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    ))}
+                    {/* Subcategory Tags */}
+                    {getSelectedSubcategoryNames().map((subcategory) => (
+                      <span
+                        key={`sub-${subcategory.id}`}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-slate-600 text-white"
+                      >
+                        {subcategory.name}
+                        <button
+                          type="button"
+                          onClick={() => removeSubcategory(subcategory.id)}
+                          className="ml-2 hover:bg-slate-500 rounded-full p-0.5 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
                 )}
 
-                {selectedCategoryIds.length >= 5 && (
-                  <p className="mt-2 text-sm text-[#ff6b35]">
-                    Maximum of 5 categories reached
-                  </p>
+                {/* Dropdown Panel */}
+                {isDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-2 border border-slate-600 rounded-lg bg-slate-800 shadow-xl max-h-96 overflow-y-auto">
+                    <div className="p-4">
+                      {categories?.map((category) => {
+                        const isSelected = selectedCategoryIds.includes(category.id);
+                        const isDisabled = !isSelected && selectedCategoryIds.length >= 5;
+                        const categorySubcategories = getSubcategoriesForCategory(category.id);
+
+                        return (
+                          <div key={category.id} className="mb-3">
+                            {/* Category checkbox */}
+                            <label className={`flex items-center p-2 rounded hover:bg-slate-700 cursor-pointer ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                disabled={isDisabled}
+                                onChange={() => toggleCategory(category.id)}
+                                className="w-4 h-4 text-[#ff6b35] border-gray-300 rounded focus:ring-[#ff6b35]"
+                              />
+                              <span className="ml-3 text-white font-medium">
+                                {category.name}
+                              </span>
+                            </label>
+
+                            {/* Subcategories indented below */}
+                            {isSelected && categorySubcategories.length > 0 && (
+                              <div className="ml-8 mt-2 space-y-1">
+                                {categorySubcategories.map((subcategory) => (
+                                  <label key={subcategory.id} className="flex items-center p-2 rounded hover:bg-slate-700 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedSubcategoryIds.includes(subcategory.id)}
+                                      onChange={() => toggleSubcategory(subcategory.id)}
+                                      className="w-4 h-4 text-[#ff6b35] border-gray-300 rounded focus:ring-[#ff6b35]"
+                                    />
+                                    <span className="ml-3 text-sm text-gray-300">
+                                      {subcategory.name}
+                                    </span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Footer info */}
+                    <div className="border-t border-slate-600 p-3 bg-slate-900/50">
+                      {selectedCategoryIds.length === 0 ? (
+                        <p className="text-sm text-gray-400">
+                          Select at least one category to get started
+                        </p>
+                      ) : selectedCategoryIds.length >= 5 ? (
+                        <p className="text-sm text-[#ff6b35]">
+                          Maximum of 5 categories reached
+                        </p>
+                      ) : (
+                        <p className="text-sm text-gray-400">
+                          You can select up to {5 - selectedCategoryIds.length} more {5 - selectedCategoryIds.length === 1 ? 'category' : 'categories'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
 

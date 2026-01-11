@@ -113,3 +113,22 @@ export interface GeneralQuote {
   category?: Category;
   subcategory?: Subcategory;
 }
+
+export interface GoogleCredentialResponse {
+  credential: string;
+  select_by: string;
+}
+
+declare global {
+  interface Window {
+    google: {
+      accounts: {
+        id: {
+          initialize: (config: any) => void;
+          renderButton: (element: HTMLElement, config: any) => void;
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}

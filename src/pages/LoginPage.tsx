@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import GoogleLoginButton from '../components/GoogleLoginButton';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -113,6 +114,26 @@ export default function LoginPage() {
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
+
+          {/* OR divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300 dark:border-dark-border"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-gray-50 dark:bg-dark-bg text-gray-500 dark:text-gray-400">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          {/* Google Login Button */}
+          <GoogleLoginButton
+            onSuccess={() => {
+              // Navigation handled in component
+            }}
+            onError={(error) => setError(error)}
+          />
         </form>
       </div>
     </div>

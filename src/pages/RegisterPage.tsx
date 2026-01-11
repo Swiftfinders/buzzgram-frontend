@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import type { RegisterInput } from '../types';
+import GoogleLoginButton from '../components/GoogleLoginButton';
 
 export default function RegisterPage() {
   // User type selection (first step)
@@ -416,6 +417,24 @@ export default function RegisterPage() {
               >
                 {loading ? 'Creating account...' : 'Sign Up'}
               </button>
+
+              {/* OR divider */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300 dark:border-dark-border"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-gray-50 dark:bg-dark-bg text-gray-500 dark:text-gray-400">
+                    Or sign up with
+                  </span>
+                </div>
+              </div>
+
+              {/* Google Signup Button */}
+              <GoogleLoginButton
+                userType={userType as 'customer' | 'business_owner'}
+                onError={(error) => setError(error)}
+              />
             </div>
           )}
         </form>

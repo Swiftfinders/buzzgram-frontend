@@ -201,3 +201,21 @@ export const deleteOwnAccount = async (password: string) => {
   const { data } = await api.delete('/auth/delete-account', { data: { password } });
   return data;
 };
+
+// Google OAuth authentication
+export const googleAuth = async (
+  credential: string,
+  userType?: 'customer' | 'business_owner',
+  businessName?: string,
+  instagramHandle?: string,
+  phone?: string
+) => {
+  const { data } = await api.post('/auth/google', {
+    credential,
+    userType,
+    businessName,
+    instagramHandle,
+    phone,
+  });
+  return data;
+};

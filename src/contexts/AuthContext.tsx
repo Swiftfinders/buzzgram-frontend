@@ -16,6 +16,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string, role?: 'user' | 'business_owner') => Promise<void>;
+  googleLogin: (credential: string, userType?: 'customer' | 'business_owner', businessName?: string, instagramHandle?: string, phone?: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -70,6 +71,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('token', data.data.token);
   };
 
+  const googleLogin = async (credential: string, userType?: 'customer' | 'business_owner', businessName?: string, instagramHandle?: string, phone?: string) => {
+    const { data } = await api.post('/auth/google', {
+      credential,
+      userType,
+      businessName,
+      instagramHandle,
+      phone,
+    });
+    setUser(data.data.user);
+    setToken(data.data.token);
+    localStorage.setItem('token', data.data.token);
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -82,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     login,
     register,
+    googleLogin,
     logout,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',

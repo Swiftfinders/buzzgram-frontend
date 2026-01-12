@@ -19,6 +19,7 @@ import QuoteLandingPage from './pages/QuoteLandingPage';
 import BusinessSignupPage from './pages/BusinessSignupPage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
 import ClaimBusinessPage from './pages/ClaimBusinessPage';
+import GoogleCallbackPage from './pages/GoogleCallbackPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/verify-email" element={<EmailVerificationPage />} />
+                  <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
                   <Route
                     path="/admin"
                     element={

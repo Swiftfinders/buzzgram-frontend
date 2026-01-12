@@ -16,13 +16,6 @@ export default function GoogleLoginButton({ userType, onSuccess, onError }: Goog
   useEffect(() => {
     if (typeof window === 'undefined' || !window.google) return;
 
-    // Aggressively clear any Google session state
-    try {
-      window.google.accounts.id.cancel();
-    } catch (e) {
-      // Ignore if cancel fails
-    }
-
     // Disable auto-select to prevent showing specific account
     window.google.accounts.id.disableAutoSelect();
 
@@ -36,14 +29,6 @@ export default function GoogleLoginButton({ userType, onSuccess, onError }: Goog
     });
 
     setIsInitialized(true);
-
-    return () => {
-      try {
-        window.google.accounts.id.cancel();
-      } catch (e) {
-        // Ignore cleanup errors
-      }
-    };
   }, []);
 
   const handleCredentialResponse = async (response: any) => {
@@ -70,12 +55,7 @@ export default function GoogleLoginButton({ userType, onSuccess, onError }: Goog
     if (!isInitialized || !window.google) return;
 
     // Trigger Google One Tap prompt
-    window.google.accounts.id.prompt((notification: any) => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        // One Tap not displayed, show account chooser instead
-        console.log('One Tap dismissed or not shown');
-      }
-    });
+    window.google.accounts.id.prompt();
   };
 
   return (

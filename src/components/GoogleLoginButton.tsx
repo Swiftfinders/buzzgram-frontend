@@ -16,9 +16,14 @@ export default function GoogleLoginButton({ userType, onSuccess, onError }: Goog
   useEffect(() => {
     if (typeof window === 'undefined' || !window.google) return;
 
+    // Disable auto-select to prevent showing specific account
+    window.google.accounts.id.disableAutoSelect();
+
     window.google.accounts.id.initialize({
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
       callback: handleCredentialResponse,
+      auto_select: false,
+      cancel_on_tap_outside: true,
     });
 
     if (googleButtonRef.current) {
@@ -26,7 +31,8 @@ export default function GoogleLoginButton({ userType, onSuccess, onError }: Goog
         theme: 'outline',
         size: 'large',
         width: googleButtonRef.current.offsetWidth,
-        text: 'continue_with',
+        text: 'signin_with',
+        shape: 'rectangular',
       });
     }
   }, []);

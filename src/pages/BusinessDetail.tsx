@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getBusiness, getCategories, getSubcategories, submitQuoteRequest } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
 import LoadingSpinner from '../components/LoadingSpinner';
+import VerifiedBadge from '../components/VerifiedBadge';
 import type { AvailabilitySlot } from '../types';
 
 type TabType = 'about' | 'services' | 'reviews' | 'quote';
@@ -160,8 +161,11 @@ export default function BusinessDetail() {
           <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
             {/* Left side: Name and Claim Button */}
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 {business.name}
+                {business.claimedAt && business.approvedAt && (
+                  <VerifiedBadge size="md" />
+                )}
               </h1>
 
               {/* Claim This Business Button */}

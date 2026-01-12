@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import type { Business } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { addFavorite, removeFavorite, checkFavorite } from '../lib/api';
+import VerifiedBadge from './VerifiedBadge';
 
 interface BusinessCardProps {
   business: Business;
@@ -84,8 +85,11 @@ export default function BusinessCard({ business }: BusinessCardProps) {
 
       <Link to={`/business/${business.id}`} className="block">
       {/* Business Name */}
-      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors tracking-tight">
+      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors tracking-tight flex items-center gap-1.5">
         {business.name}
+        {business.claimedAt && business.approvedAt && (
+          <VerifiedBadge size="sm" />
+        )}
       </h3>
 
       {/* Category Badge */}

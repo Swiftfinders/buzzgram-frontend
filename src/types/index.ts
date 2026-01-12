@@ -38,6 +38,8 @@ export interface Business {
   email: string | null;
   imageUrl: string | null;
   featured: boolean;
+  claimedAt: string | null;
+  approvedAt: string | null;
   createdAt: string;
   updatedAt: string;
   city?: City;

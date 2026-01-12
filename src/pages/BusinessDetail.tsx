@@ -159,25 +159,15 @@ export default function BusinessDetail() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* Business Name with Buttons */}
           <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-            {/* Left side: Name and Claim Button */}
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                {business.name}
-                {business.claimedAt && business.approvedAt && (
-                  <VerifiedBadge size="md" />
-                )}
-              </h1>
+            {/* Business Name */}
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              {business.name}
+              {business.claimedAt && business.approvedAt && (
+                <VerifiedBadge size="md" />
+              )}
+            </h1>
 
-              {/* Claim This Business Button */}
-              <button
-                onClick={() => navigate('/register')}
-                className="inline-flex items-center justify-center px-4 py-2 bg-orange-500 text-white rounded-md text-sm font-medium hover:bg-orange-600 transition-colors whitespace-nowrap"
-              >
-                Claim Business
-              </button>
-            </div>
-
-            {/* Share Button - Far Right */}
+            {/* Share Button */}
             <button
               onClick={handleShare}
               className="inline-flex items-center justify-center gap-1.5 px-4 py-2 border border-gray-300 dark:border-dark-border text-gray-700 dark:text-gray-300 rounded-md text-sm font-medium hover:border-orange-500 dark:hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-all whitespace-nowrap"

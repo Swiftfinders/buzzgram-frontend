@@ -253,7 +253,11 @@ export default function BusinessSignupPage() {
                       type="text"
                       required
                       value={instagramHandle}
-                      onChange={(e) => setInstagramHandle(e.target.value)}
+                      onChange={(e) => {
+                        // Remove @ if user types it
+                        const value = e.target.value.replace(/^@+/, '');
+                        setInstagramHandle(value);
+                      }}
                       className="appearance-none rounded-lg relative block w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-dark-border placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-dark-card focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                       placeholder="yourbusiness"
                     />

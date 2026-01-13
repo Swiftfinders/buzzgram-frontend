@@ -272,6 +272,12 @@ export const deleteOwnAccount = async (password: string) => {
   return data;
 };
 
+// Business Owner: Get quote requests for owned businesses
+export const getMyQuoteRequests = async () => {
+  const { data } = await api.get('/quote-requests/my-requests');
+  return data.data;
+};
+
 // Google OAuth authentication
 export const googleAuth = async (
   credential: string,

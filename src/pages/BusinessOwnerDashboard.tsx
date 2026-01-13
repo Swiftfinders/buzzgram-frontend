@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getOwnedBusinesses } from '../lib/api';
+import { getOwnedBusinesses, getMyQuoteRequests } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -10,6 +10,11 @@ export default function BusinessOwnerDashboard() {
   const { data: businesses, isLoading } = useQuery({
     queryKey: ['ownedBusinesses'],
     queryFn: getOwnedBusinesses,
+  });
+
+  const { data: quoteRequests } = useQuery({
+    queryKey: ['myQuoteRequests'],
+    queryFn: getMyQuoteRequests,
   });
 
   if (isLoading) {
@@ -80,7 +85,7 @@ export default function BusinessOwnerDashboard() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Quote Requests</p>
-                    <p className="text-2xl font-semibold text-gray-900 dark:text-white">-</p>
+                    <p className="text-2xl font-semibold text-gray-900 dark:text-white">{quoteRequests?.length || 0}</p>
                   </div>
                 </div>
               </div>
@@ -175,6 +180,82 @@ export default function BusinessOwnerDashboard() {
                 ))}
               </div>
             </div>
+
+            {/* Quote Requests Section */}
+            {quoteRequests && quoteRequests.length > 0 && (
+              <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Recent Quote Requests
+                </h2>
+                <div className="space-y-4">
+                  {quoteRequests.map((quote: any) => (
+                    <div
+                      key={quote.id}
+                      className="border border-gray-200 dark:border-dark-border rounded-lg p-4 hover:border-orange-500 dark:hover:border-orange-500 transition-all"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                            {quote.name}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            For: <span className="font-medium text-gray-900 dark:text-white">{quote.business.name}</span>
+                          </p>
+                        </div>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            quote.status === 'pending'
+                              ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'
+                              : quote.status === 'viewed'
+                              ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400'
+                              : 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+                          }`}
+                        >
+                          {quote.status}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-3">
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Email:</span>
+                          <a href={`mailto:${quote.email}`} className="ml-2 text-orange-600 dark:text-orange-400 hover:underline">
+                            {quote.email}
+                          </a>
+                        </div>
+                        {quote.phone && (
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">Phone:</span>
+                            <a href={`tel:${quote.phone}`} className="ml-2 text-orange-600 dark:text-orange-400 hover:underline">
+                              {quote.phone}
+                            </a>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Category:</span>
+                          <span className="ml-2 text-gray-900 dark:text-white">
+                            {quote.category.name}
+                            {quote.subcategory && ` • ${quote.subcategory.name}`}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Requested:</span>
+                          <span className="ml-2 text-gray-900 dark:text-white">
+                            {new Date(quote.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {quote.message && (
+                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-dark-border">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 font-medium">Message:</p>
+                          <p className="text-sm text-gray-900 dark:text-white">{quote.message}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           /* Show "No Business Linked Yet" */

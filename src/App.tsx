@@ -11,6 +11,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminDashboard from './pages/AdminDashboard';
 import BusinessOwnerDashboard from './pages/BusinessOwnerDashboard';
+import EditBusinessPage from './pages/EditBusinessPage';
 import UserDashboard from './pages/UserDashboard';
 import SettingsPage from './pages/SettingsPage';
 import FavoritesPage from './pages/FavoritesPage';
@@ -52,6 +53,14 @@ function App() {
                     element={
                       <ProtectedRoute requireBusinessOwner>
                         <BusinessOwnerDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/edit-business"
+                    element={
+                      <ProtectedRoute requireBusinessOwner>
+                        <EditBusinessPage />
                       </ProtectedRoute>
                     }
                   />

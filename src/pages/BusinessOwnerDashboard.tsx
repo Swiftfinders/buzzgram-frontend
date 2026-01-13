@@ -139,8 +139,14 @@ export default function BusinessOwnerDashboard() {
 
                     <div className="flex flex-wrap gap-3">
                       <Link
-                        to={`/business/${business.id}`}
+                        to="/edit-business"
                         className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
+                      >
+                        Edit Business
+                      </Link>
+                      <Link
+                        to={`/business/${business.id}`}
+                        className="px-4 py-2 border border-gray-300 dark:border-dark-border hover:border-orange-500 dark:hover:border-orange-500 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
                       >
                         View Listing
                       </Link>

@@ -24,10 +24,21 @@ export interface Subcategory {
   category?: Category;
 }
 
+export interface BusinessService {
+  id: number;
+  businessId: number;
+  serviceName: string;
+  price: string | null;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Business {
   id: number;
   name: string;
   description: string | null;
+  address: string | null;
   cityId: number;
   categoryId: number;
   subcategoryId: number | null;
@@ -45,6 +56,7 @@ export interface Business {
   city?: City;
   category?: Category;
   subcategory?: Subcategory;
+  services?: BusinessService[];
 }
 
 export interface BusinessSearchParams {

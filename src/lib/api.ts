@@ -208,6 +208,52 @@ export const getOwnedBusinesses = async () => {
   return data.data;
 };
 
+// Business Owner: Get single business for editing
+export const getOwnerBusiness = async () => {
+  const { data } = await api.get('/owner/business');
+  return data.data;
+};
+
+// Business Owner: Update business profile
+export const updateBusinessProfile = async (profileData: {
+  description?: string;
+  address?: string;
+  instagramHandle?: string;
+}) => {
+  const { data } = await api.put('/owner/business', profileData);
+  return data;
+};
+
+// Business Owner: Add service
+export const addBusinessService = async (serviceData: {
+  serviceName: string;
+  price?: string;
+}) => {
+  const { data } = await api.post('/owner/business/services', serviceData);
+  return data;
+};
+
+// Business Owner: Update service
+export const updateBusinessService = async (serviceId: number, serviceData: {
+  serviceName?: string;
+  price?: string;
+}) => {
+  const { data } = await api.put(`/owner/business/services/${serviceId}`, serviceData);
+  return data;
+};
+
+// Business Owner: Delete service
+export const deleteBusinessService = async (serviceId: number) => {
+  const { data} = await api.delete(`/owner/business/services/${serviceId}`);
+  return data;
+};
+
+// Business Owner: Reorder services
+export const reorderBusinessServices = async (serviceIds: number[]) => {
+  const { data } = await api.put('/owner/business/services/reorder', { serviceIds });
+  return data;
+};
+
 // User: Change password
 export const changePassword = async (currentPassword: string, newPassword: string) => {
   const { data } = await api.put('/auth/change-password', { currentPassword, newPassword });

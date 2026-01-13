@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { getAdminStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus, getBusinessClaims, approveBusinessClaim, rejectBusinessClaim, getBusinessRegistrations, approveBusinessRegistration, rejectBusinessRegistration } from '../lib/api';
+import { getAdminStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus, getBusinessClaims, approveBusinessClaim, rejectBusinessClaim, getBusinessRegistrations, approveBusinessRegistration, rejectBusinessRegistration, getAllReviews, toggleReviewVisibility, deleteReview } from '../lib/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import StarRating from '../components/StarRating';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -12,6 +13,7 @@ export default function AdminDashboard() {
   const [showUsers, setShowUsers] = useState(false);
   const [showQuotes, setShowQuotes] = useState(false);
   const [showClaims, setShowClaims] = useState(false);
+  const [showReviews, setShowReviews] = useState(false);
   const [claimFilter, setClaimFilter] = useState<'claims' | 'registrations'>('claims');
   const [businessSearch, setBusinessSearch] = useState('');
   const [deletingBusinessId, setDeletingBusinessId] = useState<number | null>(null);
@@ -20,6 +22,8 @@ export default function AdminDashboard() {
   const [togglingUserId, setTogglingUserId] = useState<number | null>(null);
   const [processingClaimId, setProcessingClaimId] = useState<number | null>(null);
   const [processingRegistrationId, setProcessingRegistrationId] = useState<number | null>(null);
+  const [togglingReviewId, setTogglingReviewId] = useState<number | null>(null);
+  const [deletingReviewId, setDeletingReviewId] = useState<number | null>(null);
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['adminStats'],
@@ -55,6 +59,12 @@ export default function AdminDashboard() {
     queryKey: ['businessRegistrations'],
     queryFn: getBusinessRegistrations,
     enabled: showClaims,
+  });
+
+  const { data: reviews } = useQuery({
+    queryKey: ['allReviews'],
+    queryFn: getAllReviews,
+    enabled: showReviews,
   });
 
   // Search businesses query - only fetch when search is not empty
@@ -230,6 +240,48 @@ export default function AdminDashboard() {
     }
   };
 
+  // Toggle review visibility mutation
+  const toggleReviewVisibilityMutation = useMutation({
+    mutationFn: toggleReviewVisibility,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allReviews'] });
+      setTogglingReviewId(null);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Failed to toggle review visibility');
+      setTogglingReviewId(null);
+    },
+  });
+
+  // Delete review mutation
+  const deleteReviewMutation = useMutation({
+    mutationFn: deleteReview,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allReviews'] });
+      setDeletingReviewId(null);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Failed to delete review');
+      setDeletingReviewId(null);
+    },
+  });
+
+  const handleToggleReviewVisibility = (reviewId: number, currentStatus: string, businessName: string) => {
+    const newStatus = currentStatus === 'visible' ? 'hidden' : 'visible';
+    const action = newStatus === 'hidden' ? 'hide' : 'show';
+    if (window.confirm(`Are you sure you want to ${action} this review for "${businessName}"?`)) {
+      setTogglingReviewId(reviewId);
+      toggleReviewVisibilityMutation.mutate(reviewId);
+    }
+  };
+
+  const handleDeleteReview = (reviewId: number, businessName: string, userName: string) => {
+    if (window.confirm(`Are you sure you want to permanently delete ${userName}'s review for "${businessName}"? This action cannot be undone.`)) {
+      setDeletingReviewId(reviewId);
+      deleteReviewMutation.mutate(reviewId);
+    }
+  };
+
   if (isLoading) return <LoadingSpinner />;
 
   return (
@@ -246,7 +298,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
           <button
             onClick={() => setShowBusinesses(!showBusinesses)}
             className="w-full bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 hover:border-orange-500 dark:hover:border-orange-500 transition-all cursor-pointer text-left"
@@ -346,6 +398,35 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <svg className={`w-5 h-5 text-gray-400 transition-transform ${showClaims ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setShowReviews(!showReviews)}
+            className="w-full bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 hover:border-yellow-500 dark:hover:border-yellow-500 transition-all cursor-pointer text-left"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Customer Reviews</p>
+                  <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                    {reviews?.length || 0}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {reviews?.filter((r: any) => r.status === 'visible').length || 0} visible · {reviews?.filter((r: any) => r.status === 'hidden').length || 0} hidden
+                  </p>
+                </div>
+              </div>
+              <svg className={`w-5 h-5 text-gray-400 transition-transform ${showReviews ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
@@ -985,6 +1066,162 @@ export default function AdminDashboard() {
                 </p>
               </div>
             ) : null}
+          </div>
+        )}
+
+        {/* Expandable Reviews List */}
+        {showReviews && (
+          <div className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              All Reviews ({reviews?.length || 0})
+            </h3>
+
+            {reviews && reviews.length > 0 ? (
+              <div className="space-y-4">
+                {reviews.map((review: any) => (
+                  <div
+                    key={review.id}
+                    className={`p-5 rounded-lg border-2 ${
+                      review.status === 'visible'
+                        ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/10'
+                        : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/10'
+                    }`}
+                  >
+                    {/* Review Header */}
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h4 className="font-semibold text-gray-900 dark:text-white">
+                            {review.user?.name || 'Anonymous'}
+                          </h4>
+                          <StarRating
+                            rating={review.rating}
+                            onRatingChange={() => {}}
+                            size="sm"
+                            readonly={true}
+                          />
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          For: <span className="font-medium text-orange-600 dark:text-orange-400">
+                            {review.business?.name || 'Unknown Business'}
+                          </span>
+                        </p>
+                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          review.status === 'visible'
+                            ? 'bg-green-200 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                            : 'bg-gray-200 dark:bg-gray-900/30 text-gray-800 dark:text-gray-400'
+                        }`}
+                      >
+                        {review.status}
+                      </span>
+                    </div>
+
+                    {/* Review Text */}
+                    {review.reviewText && (
+                      <div className="bg-white dark:bg-dark-bg rounded p-3 mb-3">
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          "{review.reviewText}"
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Review Media */}
+                    {review.mediaUrl && (
+                      <div className="mb-3">
+                        <img
+                          src={review.mediaUrl}
+                          alt="Review media"
+                          className="rounded-lg max-w-xs h-auto"
+                        />
+                      </div>
+                    )}
+
+                    {/* Review Meta */}
+                    <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mb-3">
+                      <span>Posted: {new Date(review.createdAt).toLocaleString()}</span>
+                      {review.user?.email && (
+                        <span>{review.user.email}</span>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3 pt-3 border-t border-gray-200 dark:border-dark-border">
+                      {/* Toggle Visibility Button */}
+                      <button
+                        onClick={() => handleToggleReviewVisibility(review.id, review.status, review.business?.name || 'Unknown')}
+                        disabled={togglingReviewId === review.id}
+                        className={`flex-1 px-4 py-2 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                          review.status === 'visible'
+                            ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                            : 'bg-green-600 hover:bg-green-700 text-white'
+                        }`}
+                      >
+                        {togglingReviewId === review.id ? (
+                          <>
+                            <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Processing...
+                          </>
+                        ) : review.status === 'visible' ? (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                            </svg>
+                            Hide Review
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            Show Review
+                          </>
+                        )}
+                      </button>
+
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => handleDeleteReview(review.id, review.business?.name || 'Unknown', review.user?.name || 'Anonymous')}
+                        disabled={deletingReviewId === review.id}
+                        className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {deletingReviewId === review.id ? (
+                          <>
+                            <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Deleting...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete Review
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  No Reviews Yet
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  There are no customer reviews to display at the moment.
+                </p>
+              </div>
+            )}
           </div>
         )}
 

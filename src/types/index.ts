@@ -134,6 +134,27 @@ export interface GeneralQuote {
   subcategories?: Subcategory[];
 }
 
+export interface Review {
+  id: number;
+  businessId: number;
+  userId: number;
+  rating: number;
+  reviewText: string | null;
+  mediaUrl: string | null;
+  status: 'visible' | 'hidden';
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    id: number;
+    name: string;
+    email?: string;
+  };
+  business?: {
+    id: number;
+    name: string;
+  };
+}
+
 export interface GoogleCredentialResponse {
   credential: string;
   select_by: string;

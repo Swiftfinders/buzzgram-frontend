@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getBusiness, getCategories, getSubcategories, submitQuoteRequest } from '../lib/api';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { getBusiness, getCategories, getSubcategories, submitQuoteRequest, createReview, getBusinessReviews } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
 import LoadingSpinner from '../components/LoadingSpinner';
 import VerifiedBadge from '../components/VerifiedBadge';
+import StarRating from '../components/StarRating';
 import type { AvailabilitySlot } from '../types';
 
 type TabType = 'about' | 'services' | 'reviews' | 'quote';
@@ -30,6 +31,12 @@ export default function BusinessDetail() {
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteSuccess, setQuoteSuccess] = useState(false);
 
+  // Review form state
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewError, setReviewError] = useState('');
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+
   const { data: business, isLoading, error } = useQuery({
     queryKey: ['business', id],
     queryFn: () => getBusiness(Number(id)),
@@ -44,6 +51,30 @@ export default function BusinessDetail() {
   const { data: subcategories } = useQuery({
     queryKey: ['subcategories'],
     queryFn: getSubcategories,
+  });
+
+  // Fetch reviews for this business
+  const { data: reviews } = useQuery({
+    queryKey: ['reviews', id],
+    queryFn: () => getBusinessReviews(Number(id)),
+    enabled: !!id,
+  });
+
+  // Create review mutation
+  const createReviewMutation = useMutation({
+    mutationFn: createReview,
+    onSuccess: () => {
+      setReviewSuccess(true);
+      setReviewError('');
+      setReviewRating(0);
+      setReviewText('');
+      queryClient.invalidateQueries({ queryKey: ['reviews', id] });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    onError: (error: any) => {
+      setReviewError(error.response?.data?.message || 'Failed to submit review');
+      setReviewSuccess(false);
+    },
   });
 
   // Filter subcategories by selected category
@@ -237,7 +268,7 @@ export default function BusinessDetail() {
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
               }`}
             >
-              Reviews (0)
+              Reviews ({reviews?.length || 0})
             </button>
             <button
               onClick={() => setActiveTab('quote')}
@@ -402,20 +433,181 @@ export default function BusinessDetail() {
 
         {/* Reviews Tab */}
         {activeTab === 'reviews' && (
-          <div className="max-w-4xl">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-              Customer Reviews
-            </h2>
-            <div className="text-center py-10 bg-gray-50 dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border">
-              <svg className="w-10 h-10 mx-auto text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-              </svg>
-              <p className="text-gray-900 dark:text-white font-medium text-sm mb-1">
-                No reviews yet
-              </p>
-              <p className="text-gray-500 dark:text-gray-400 text-xs">
-                Be the first to review {business.name}!
-              </p>
+          <div className="max-w-4xl space-y-8">
+            {/* Review Submission Form */}
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                Leave a Review
+              </h2>
+
+              {reviewSuccess && (
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <p className="ml-3 text-sm text-green-800 dark:text-green-200">
+                      Thank you! Your review has been submitted successfully.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {reviewError && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-red-800 dark:text-red-200">{reviewError}</p>
+                </div>
+              )}
+
+              <div className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg p-6">
+                {user ? (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    Posting as <span className="font-medium text-gray-900 dark:text-white">{user.name}</span>
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    <span className="text-orange-600 dark:text-orange-400 font-medium">Sign in</span> to leave a review
+                  </p>
+                )}
+
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!user) {
+                    navigate('/login');
+                    return;
+                  }
+                  if (reviewRating === 0) {
+                    setReviewError('Please select a rating');
+                    return;
+                  }
+                  createReviewMutation.mutate({
+                    businessId: business.id,
+                    rating: reviewRating,
+                    reviewText: reviewText || undefined,
+                  });
+                }} className="space-y-4">
+                  {/* Star Rating */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Your Rating <span className="text-red-500">*</span>
+                    </label>
+                    <StarRating
+                      rating={reviewRating}
+                      onRatingChange={setReviewRating}
+                      size="lg"
+                      readonly={false}
+                    />
+                  </div>
+
+                  {/* Review Text */}
+                  <div>
+                    <label htmlFor="review-text" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Your Review
+                    </label>
+                    <textarea
+                      id="review-text"
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                      rows={4}
+                      className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-dark-border placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-dark-card focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                      placeholder="Share your experience with this business..."
+                    />
+                  </div>
+
+                  {/* Media Upload Placeholder */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Add Photo or Video (Coming Soon)
+                    </label>
+                    <div className="border-2 border-dashed border-gray-300 dark:border-dark-border rounded-lg p-6 text-center">
+                      <svg className="w-8 h-8 mx-auto text-gray-400 dark:text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Photo/video upload feature coming soon</p>
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={createReviewMutation.isPending}
+                    className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {createReviewMutation.isPending ? 'Submitting...' : 'Submit Review'}
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Existing Reviews */}
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                Customer Reviews {reviews && reviews.length > 0 && `(${reviews.length})`}
+              </h2>
+
+              {reviews && reviews.length > 0 ? (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <div
+                      key={review.id}
+                      className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg p-6"
+                    >
+                      {/* Review Header */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">
+                            {review.user?.name || 'Anonymous'}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {new Date(review.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })}
+                          </p>
+                        </div>
+                        <StarRating
+                          rating={review.rating}
+                          onRatingChange={() => {}}
+                          size="sm"
+                          readonly={true}
+                        />
+                      </div>
+
+                      {/* Review Text */}
+                      {review.reviewText && (
+                        <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                          {review.reviewText}
+                        </p>
+                      )}
+
+                      {/* Review Media */}
+                      {review.mediaUrl && (
+                        <div className="mt-4">
+                          <img
+                            src={review.mediaUrl}
+                            alt="Review media"
+                            className="rounded-lg max-w-full h-auto"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 bg-gray-50 dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border">
+                  <svg className="w-10 h-10 mx-auto text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                  <p className="text-gray-900 dark:text-white font-medium text-sm mb-1">
+                    No reviews yet
+                  </p>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs">
+                    Be the first to review {business.name}!
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}

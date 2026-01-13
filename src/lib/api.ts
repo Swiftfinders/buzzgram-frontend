@@ -278,6 +278,37 @@ export const getMyQuoteRequests = async () => {
   return data.data;
 };
 
+// Reviews
+export const createReview = async (reviewData: {
+  businessId: number;
+  rating: number;
+  reviewText?: string;
+  mediaUrl?: string;
+}) => {
+  const { data } = await api.post('/reviews', reviewData);
+  return data;
+};
+
+export const getBusinessReviews = async (businessId: number) => {
+  const { data } = await api.get(`/reviews/business/${businessId}`);
+  return data.data;
+};
+
+export const getAllReviews = async () => {
+  const { data } = await api.get('/reviews');
+  return data.data;
+};
+
+export const toggleReviewVisibility = async (reviewId: number) => {
+  const { data } = await api.patch(`/reviews/${reviewId}/toggle-visibility`);
+  return data;
+};
+
+export const deleteReview = async (reviewId: number) => {
+  const { data } = await api.delete(`/reviews/${reviewId}`);
+  return data;
+};
+
 // Google OAuth authentication
 export const googleAuth = async (
   credential: string,

@@ -93,18 +93,10 @@ export default function GoogleLoginButton({ userType, onSuccess, onError }: Goog
     try {
       // Trigger the Google Sign-In flow
       // This will open account chooser without showing cached account
-      window.google.accounts.id.prompt((notification: any) => {
-        setIsLoading(false);
+      window.google.accounts.id.prompt();
 
-        if (notification.isNotDisplayed()) {
-          console.error('Google prompt not displayed:', notification.getNotDisplayedReason());
-          if (onError) {
-            onError('Could not display Google Sign-In. Please try again or use email/password.');
-          }
-        } else if (notification.isSkippedMoment()) {
-          console.log('User closed the prompt');
-        }
-      });
+      // Reset loading after a short delay
+      setTimeout(() => setIsLoading(false), 1000);
     } catch (error) {
       console.error('Failed to trigger Google Sign-In:', error);
       setIsLoading(false);

@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import LoadingSpinner from '../components/LoadingSpinner';
 import VerifiedBadge from '../components/VerifiedBadge';
 import StarRating from '../components/StarRating';
-import type { AvailabilitySlot } from '../types';
+import type { AvailabilitySlot, Review } from '../types';
 
 type TabType = 'about' | 'services' | 'reviews' | 'quote';
 
@@ -548,7 +548,7 @@ export default function BusinessDetail() {
 
               {reviews && reviews.length > 0 ? (
                 <div className="space-y-4">
-                  {reviews.map((review) => (
+                  {reviews.map((review: Review) => (
                     <div
                       key={review.id}
                       className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg p-6"

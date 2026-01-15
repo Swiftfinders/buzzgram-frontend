@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tantml:query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { getAdminStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus, getBusinessClaims, approveBusinessClaim, rejectBusinessClaim, getBusinessRegistrations, approveBusinessRegistration, rejectBusinessRegistration, getAllReviews, toggleReviewVisibility, deleteReview } from '../lib/api';

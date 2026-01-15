@@ -516,7 +516,7 @@ export default function BusinessDetail() {
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                       Posting as <span className="font-medium text-gray-900 dark:text-white">{user.name}</span>
                     </p>
-                    {reviews?.some(r => r.user?.id === user.id) && !reviewSuccess && (
+                    {reviews?.some((r: Review) => r.user?.id === user.id) && !reviewSuccess && (
                       <div className="mb-4 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
                         <p className="text-sm text-orange-800 dark:text-orange-200">
                           You've already reviewed this business. To submit a new review, please delete your existing one first.
@@ -632,10 +632,10 @@ export default function BusinessDetail() {
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={createReviewMutation.isPending || (user && reviews?.some(r => r.user?.id === user.id))}
+                    disabled={createReviewMutation.isPending || (user && reviews?.some((r: Review) => r.user?.id === user.id))}
                     className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {createReviewMutation.isPending ? 'Submitting...' : (user && reviews?.some(r => r.user?.id === user.id)) ? 'Already Reviewed' : 'Submit Review'}
+                    {createReviewMutation.isPending ? 'Submitting...' : (user && reviews?.some((r: Review) => r.user?.id === user.id)) ? 'Already Reviewed' : 'Submit Review'}
                   </button>
                 </form>
               </div>

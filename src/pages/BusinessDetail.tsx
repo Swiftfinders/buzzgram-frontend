@@ -511,7 +511,13 @@ export default function BusinessDetail() {
               )}
 
               <div className="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg p-6">
-                {user ? (
+                {user && business.ownerId === user.id ? (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-dark-border rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      You cannot review your own business.
+                    </p>
+                  </div>
+                ) : user ? (
                   <>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                       Posting as <span className="font-medium text-gray-900 dark:text-white">{user.name}</span>
@@ -530,6 +536,7 @@ export default function BusinessDetail() {
                   </p>
                 )}
 
+                {(!user || business.ownerId !== user.id) && (
                 <form onSubmit={(e) => {
                   e.preventDefault();
                   if (!user) {
@@ -638,6 +645,7 @@ export default function BusinessDetail() {
                     {createReviewMutation.isPending ? 'Submitting...' : (user && reviews?.some((r: Review) => r.user?.id === user.id)) ? 'Already Reviewed' : 'Submit Review'}
                   </button>
                 </form>
+                )}
               </div>
             </div>
 
@@ -713,6 +721,36 @@ export default function BusinessDetail() {
                               className="w-full sm:max-w-md h-64 object-cover rounded-lg border border-gray-200 dark:border-dark-border"
                             />
                           )}
+                        </div>
+                      )}
+
+                      {/* Business Owner Replies */}
+                      {review.replies && review.replies.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-dark-border">
+                          {review.replies.map((reply) => (
+                            <div key={reply.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                    {reply.user?.name}
+                                  </span>
+                                  <span className="px-2 py-0.5 bg-orange-100 dark:bg-orange-900/20 text-xs font-medium text-orange-600 dark:text-orange-400 rounded-full">
+                                    Business Owner
+                                  </span>
+                                </div>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {new Date(reply.createdAt).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                  })}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">
+                                {reply.replyText}
+                              </p>
+                            </div>
+                          ))}
                         </div>
                       )}
 

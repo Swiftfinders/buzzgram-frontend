@@ -732,8 +732,9 @@ export default function BusinessDetail() {
                               <div className="flex items-start justify-between mb-2">
                                 <div className="flex items-center gap-2">
                                   <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                                    {reply.user?.name}
+                                    {reply.review?.business?.name || 'Business Owner'}
                                   </span>
+                                  <VerifiedBadge size="sm" />
                                   <span className="px-2 py-0.5 bg-orange-100 dark:bg-orange-900/20 text-xs font-medium text-orange-600 dark:text-orange-400 rounded-full">
                                     Business Owner
                                   </span>

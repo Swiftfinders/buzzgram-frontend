@@ -146,6 +146,12 @@ export interface ReviewReply {
     id: number;
     name: string;
   };
+  review?: {
+    business: {
+      id: number;
+      name: string;
+    };
+  };
 }
 
 export interface Review {

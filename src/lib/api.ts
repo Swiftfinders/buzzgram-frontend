@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { City, Category, Subcategory, Business, BusinessSearchParams, GeneralQuote } from '../types';
+import type { City, Category, Subcategory, Business, BusinessSearchParams, GeneralQuote, BlogPost, CreateBlogInput } from '../types';
 
 // Use Railway URL in production, localhost in development
 const API_BASE_URL = import.meta.env.PROD
@@ -352,4 +352,40 @@ export const googleAuth = async (
     phone,
   });
   return data;
+};
+
+// Blog Posts - Public
+export const getPublishedBlogs = async (): Promise<BlogPost[]> => {
+  const { data } = await api.get('/blogs');
+  return data;
+};
+
+export const getBlogBySlug = async (slug: string): Promise<BlogPost> => {
+  const { data } = await api.get(`/blogs/${slug}`);
+  return data;
+};
+
+// Blog Posts - Admin
+export const getAllBlogs = async (): Promise<BlogPost[]> => {
+  const { data } = await api.get('/blogs/admin/all');
+  return data;
+};
+
+export const createBlog = async (blogData: CreateBlogInput): Promise<BlogPost> => {
+  const { data } = await api.post('/blogs/admin', blogData);
+  return data;
+};
+
+export const updateBlog = async (id: number, blogData: Partial<CreateBlogInput>): Promise<BlogPost> => {
+  const { data } = await api.put(`/blogs/admin/${id}`, blogData);
+  return data;
+};
+
+export const updateBlogStatus = async (id: number, status: 'draft' | 'published' | 'hidden'): Promise<BlogPost> => {
+  const { data } = await api.put(`/blogs/admin/${id}/status`, { status });
+  return data;
+};
+
+export const deleteBlog = async (id: number): Promise<void> => {
+  await api.delete(`/blogs/admin/${id}`);
 };

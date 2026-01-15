@@ -176,6 +176,42 @@ export interface Review {
   replies?: ReviewReply[];
 }
 
+export interface BlogPost {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
+  category: string;
+  status: 'draft' | 'published' | 'hidden';
+  authorId: number | null;
+  authorName: string;
+  featuredImage: string | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  author?: {
+    id: number;
+    name: string;
+  };
+}
+
+export interface CreateBlogInput {
+  title: string;
+  slug: string;
+  excerpt?: string;
+  content: string;
+  category: string;
+  status?: 'draft' | 'published' | 'hidden';
+  authorName?: string;
+  featuredImage?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  publishedAt?: string;
+}
+
 export interface GoogleCredentialResponse {
   credential: string;
   select_by: string;

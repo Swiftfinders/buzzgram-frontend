@@ -20,6 +20,8 @@ import QuoteLandingPage from './pages/QuoteLandingPage';
 import BusinessSignupPage from './pages/BusinessSignupPage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
 import ClaimBusinessPage from './pages/ClaimBusinessPage';
+import BlogListingPage from './pages/BlogListingPage';
+import BlogDetailPage from './pages/BlogDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -35,6 +37,8 @@ function App() {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/city/:cityId" element={<CityPage />} />
                   <Route path="/business/:id" element={<BusinessDetail />} />
+                  <Route path="/blog" element={<BlogListingPage />} />
+                  <Route path="/blog/:slug" element={<BlogDetailPage />} />
                   <Route path="/quote" element={<QuoteLandingPage />} />
                   <Route path="/business-signup" element={<BusinessSignupPage />} />
                   <Route path="/login" element={<LoginPage />} />

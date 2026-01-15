@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tantml:query';
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { getAdminStats, getAllUsers, getGeneralQuotes, getAllBusinessQuotes, getBusinesses, deleteBusiness, updateBusinessStatus, deleteUser, updateUserStatus, getBusinessClaims, approveBusinessClaim, rejectBusinessClaim, getBusinessRegistrations, approveBusinessRegistration, rejectBusinessRegistration, getAllReviews, toggleReviewVisibility, deleteReview } from '../lib/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import StarRating from '../components/StarRating';
+import BlogManagement from '../components/BlogManagement';
+import BlogEditor from '../components/BlogEditor';
+import type { BlogPost } from '../types';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -14,6 +17,9 @@ export default function AdminDashboard() {
   const [showQuotes, setShowQuotes] = useState(false);
   const [showClaims, setShowClaims] = useState(false);
   const [showReviews, setShowReviews] = useState(false);
+  const [showBlogs, setShowBlogs] = useState(false);
+  const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
+  const [creatingBlog, setCreatingBlog] = useState(false);
   const [claimFilter, setClaimFilter] = useState<'claims' | 'registrations'>('claims');
   const [businessSearch, setBusinessSearch] = useState('');
   const [deletingBusinessId, setDeletingBusinessId] = useState<number | null>(null);
@@ -427,6 +433,35 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <svg className={`w-5 h-5 text-gray-400 transition-transform ${showReviews ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setShowBlogs(!showBlogs)}
+            className="w-full bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-6 hover:border-pink-500 dark:hover:border-pink-500 transition-all cursor-pointer text-left"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Blog Posts</p>
+                  <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                    {stats?.totalBlogs || 0}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Content & SEO
+                  </p>
+                </div>
+              </div>
+              <svg className={`w-5 h-5 text-gray-400 transition-transform ${showBlogs ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
@@ -1231,6 +1266,27 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+        )}
+
+        {/* Blog Management */}
+        {showBlogs && (
+          <div className="mb-6">
+            <BlogManagement
+              onCreateNew={() => setCreatingBlog(true)}
+              onEdit={(blog) => setEditingBlog(blog)}
+            />
+          </div>
+        )}
+
+        {/* Blog Editor Modal */}
+        {(creatingBlog || editingBlog) && (
+          <BlogEditor
+            blog={editingBlog}
+            onClose={() => {
+              setCreatingBlog(false);
+              setEditingBlog(null);
+            }}
+          />
         )}
 
         {/* Quick Actions */}

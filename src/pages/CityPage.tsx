@@ -100,14 +100,14 @@ export default function CityPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-dark-bg flex flex-col">
       {/* Promotional Banner */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 pt-0 sm:pt-8">
         <PromotionalBanner />
       </div>
 
       {/* Filters */}
       <div className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-dark-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="space-y-6">
+        <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="space-y-6 px-3 sm:px-0">
             {/* Search Bar - Mobile Only */}
             <div className="relative md:hidden">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -154,10 +154,10 @@ export default function CityPage() {
       </div>
 
       {/* Results Section */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-10 flex-grow">
+      <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-10 flex-grow">
         {filteredBusinesses.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 px-3 sm:px-0">
               {displayedBusinesses.map((business) => (
                 <BusinessCard key={business.id} business={business} />
               ))}
@@ -176,7 +176,7 @@ export default function CityPage() {
             )}
           </>
         ) : (
-          <div className="text-center py-16 bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border">
+          <div className="text-center py-16 bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border mx-3 sm:mx-0">
             <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>

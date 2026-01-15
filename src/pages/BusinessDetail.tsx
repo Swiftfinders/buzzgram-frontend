@@ -588,13 +588,13 @@ export default function BusinessDetail() {
                           <img
                             src={reviewMediaUrl}
                             alt="Review media preview"
-                            className="w-full max-w-md rounded-lg border border-gray-300 dark:border-dark-border"
+                            className="w-full sm:max-w-md h-64 object-cover rounded-lg border border-gray-300 dark:border-dark-border"
                           />
                         ) : reviewMediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
                           <video
                             src={reviewMediaUrl}
                             controls
-                            className="w-full max-w-md rounded-lg border border-gray-300 dark:border-dark-border"
+                            className="w-full sm:max-w-md h-64 rounded-lg border border-gray-300 dark:border-dark-border"
                           />
                         ) : (
                           <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
@@ -694,11 +694,25 @@ export default function BusinessDetail() {
                       {/* Review Media */}
                       {review.mediaUrl && (
                         <div className="mt-4">
-                          <img
-                            src={review.mediaUrl}
-                            alt="Review media"
-                            className="rounded-lg max-w-full h-auto"
-                          />
+                          {review.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                            <img
+                              src={review.mediaUrl}
+                              alt="Review media"
+                              className="w-full sm:max-w-md h-64 object-cover rounded-lg border border-gray-200 dark:border-dark-border"
+                            />
+                          ) : review.mediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+                            <video
+                              src={review.mediaUrl}
+                              controls
+                              className="w-full sm:max-w-md h-64 rounded-lg border border-gray-200 dark:border-dark-border"
+                            />
+                          ) : (
+                            <img
+                              src={review.mediaUrl}
+                              alt="Review media"
+                              className="w-full sm:max-w-md h-64 object-cover rounded-lg border border-gray-200 dark:border-dark-border"
+                            />
+                          )}
                         </div>
                       )}
 

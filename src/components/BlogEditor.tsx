@@ -219,20 +219,6 @@ export default function BlogEditor({ blog, onClose }: BlogEditorProps) {
             />
           </div>
 
-          {/* Featured Image */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Featured Image URL
-            </label>
-            <input
-              type="url"
-              value={formData.featuredImage}
-              onChange={(e) => handleChange('featuredImage', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
-
           {/* SEO Section */}
           <div className="border-t border-gray-200 dark:border-dark-border pt-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">SEO Settings</h3>

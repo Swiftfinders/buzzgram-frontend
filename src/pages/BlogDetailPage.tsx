@@ -49,9 +49,6 @@ export default function BlogDetailPage() {
       setOgTag('og:description', blog.metaDescription || blog.excerpt || '');
       setOgTag('og:type', 'article');
       setOgTag('og:url', window.location.href);
-      if (blog.featuredImage) {
-        setOgTag('og:image', blog.featuredImage);
-      }
 
       // Add Twitter Card tags
       const setTwitterTag = (name: string, content: string) => {
@@ -64,12 +61,9 @@ export default function BlogDetailPage() {
         tag.setAttribute('content', content);
       };
 
-      setTwitterTag('twitter:card', 'summary_large_image');
+      setTwitterTag('twitter:card', 'summary');
       setTwitterTag('twitter:title', blog.metaTitle || blog.title);
       setTwitterTag('twitter:description', blog.metaDescription || blog.excerpt || '');
-      if (blog.featuredImage) {
-        setTwitterTag('twitter:image', blog.featuredImage);
-      }
 
       // Add structured data (JSON-LD)
       const structuredData = {
@@ -77,7 +71,6 @@ export default function BlogDetailPage() {
         '@type': 'BlogPosting',
         headline: blog.title,
         description: blog.excerpt || '',
-        image: blog.featuredImage || '',
         datePublished: blog.publishedAt,
         dateModified: blog.updatedAt,
         author: {
@@ -87,10 +80,6 @@ export default function BlogDetailPage() {
         publisher: {
           '@type': 'Organization',
           name: 'BuzzGram',
-          logo: {
-            '@type': 'ImageObject',
-            url: 'https://buzzgram-frontend.vercel.app/logo.png',
-          },
         },
         mainEntityOfPage: {
           '@type': 'WebPage',
@@ -208,23 +197,10 @@ export default function BlogDetailPage() {
           </div>
         </div>
 
-        {/* Featured Image */}
-        {blog.featuredImage && (
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 mb-12">
-            <div className="aspect-video overflow-hidden rounded-2xl shadow-2xl">
-              <img
-                src={blog.featuredImage}
-                alt={blog.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-        )}
-
         {/* Content */}
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div
-            className="prose prose-lg dark:prose-invert max-w-none
+            className="prose prose-lg dark:prose-invert max-w-none text-gray-700 dark:text-gray-300
               prose-headings:font-bold prose-headings:text-gray-900 dark:prose-headings:text-white
               prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed
               prose-a:text-orange-600 dark:prose-a:text-orange-400 prose-a:no-underline hover:prose-a:underline
@@ -234,7 +210,8 @@ export default function BlogDetailPage() {
               prose-blockquote:border-orange-500 prose-blockquote:bg-orange-50 dark:prose-blockquote:bg-orange-900/20 prose-blockquote:p-4 prose-blockquote:rounded-r-lg
               prose-code:text-orange-600 dark:prose-code:text-orange-400 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:rounded
               prose-pre:bg-gray-900 dark:prose-pre:bg-gray-950
-              prose-img:rounded-xl prose-img:shadow-lg"
+              prose-img:rounded-xl prose-img:shadow-lg
+              whitespace-pre-wrap break-words"
             dangerouslySetInnerHTML={{ __html: blog.content }}
           />
         </div>

@@ -94,30 +94,20 @@ export default function BlogListingPage() {
                 to={`/blog/${blog.slug}`}
                 className="group bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
               >
-                {/* Featured Image */}
-                {blog.featuredImage ? (
-                  <div className="aspect-video overflow-hidden bg-gray-100 dark:bg-gray-800">
-                    <img
-                      src={blog.featuredImage}
-                      alt={blog.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                {/* Featured Image Placeholder */}
+                <div className="aspect-video bg-gradient-to-br from-orange-100 to-pink-100 dark:from-orange-900/20 dark:to-pink-900/20 flex items-center justify-center">
+                  <svg
+                    className="w-16 h-16 text-orange-300 dark:text-orange-700"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                      clipRule="evenodd"
                     />
-                  </div>
-                ) : (
-                  <div className="aspect-video bg-gradient-to-br from-orange-100 to-pink-100 dark:from-orange-900/20 dark:to-pink-900/20 flex items-center justify-center">
-                    <svg
-                      className="w-16 h-16 text-orange-300 dark:text-orange-700"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                )}
+                  </svg>
+                </div>
 
                 {/* Content */}
                 <div className="p-6">

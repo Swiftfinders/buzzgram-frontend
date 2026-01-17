@@ -51,6 +51,35 @@ export default function CityPage() {
     setShowAll(false);
   }, [selectedCategory, selectedSubcategory, searchTerm]);
 
+  // Filter subcategories based on selected category
+  const filteredSubcategories = useMemo(() => {
+    if (!subcategories || !selectedCategory) return [];
+    return subcategories.filter((subcategory) => subcategory.categoryId === selectedCategory);
+  }, [subcategories, selectedCategory]);
+
+  const filteredBusinesses = useMemo(() => {
+    if (!businesses) return [];
+
+    return businesses.filter((business) => {
+      const matchesCategory = !selectedCategory || business.categoryId === selectedCategory;
+      const matchesSubcategory = !selectedSubcategory || business.subcategoryId === selectedSubcategory;
+      const matchesSearch =
+        !searchTerm ||
+        business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (business.description && business.description.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      return matchesCategory && matchesSubcategory && matchesSearch;
+    });
+  }, [businesses, selectedCategory, selectedSubcategory, searchTerm]);
+
+  // Determine how many businesses to show initially
+  const shouldShowLoadMore = !selectedSubcategory && !searchTerm;
+  const initialLimit = typeof window !== 'undefined' && window.innerWidth < 768 ? 10 : 20;
+  const displayedBusinesses = shouldShowLoadMore && !showAll
+    ? filteredBusinesses.slice(0, initialLimit)
+    : filteredBusinesses;
+  const hasMoreToShow = shouldShowLoadMore && filteredBusinesses.length > initialLimit;
+
   // SEO/AEO Optimization - ONLY FOR TORONTO (City ID 36)
   useEffect(() => {
     if (cityId !== '36' || !city || !businesses || !categories) return;
@@ -228,35 +257,6 @@ export default function CityPage() {
       document.title = 'BuzzGram - Discover Local Businesses';
     };
   }, [cityId, city, businesses, categories, selectedCategory, filteredBusinesses]);
-
-  // Filter subcategories based on selected category
-  const filteredSubcategories = useMemo(() => {
-    if (!subcategories || !selectedCategory) return [];
-    return subcategories.filter((subcategory) => subcategory.categoryId === selectedCategory);
-  }, [subcategories, selectedCategory]);
-
-  const filteredBusinesses = useMemo(() => {
-    if (!businesses) return [];
-
-    return businesses.filter((business) => {
-      const matchesCategory = !selectedCategory || business.categoryId === selectedCategory;
-      const matchesSubcategory = !selectedSubcategory || business.subcategoryId === selectedSubcategory;
-      const matchesSearch =
-        !searchTerm ||
-        business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (business.description && business.description.toLowerCase().includes(searchTerm.toLowerCase()));
-
-      return matchesCategory && matchesSubcategory && matchesSearch;
-    });
-  }, [businesses, selectedCategory, selectedSubcategory, searchTerm]);
-
-  // Determine how many businesses to show initially
-  const shouldShowLoadMore = !selectedSubcategory && !searchTerm;
-  const initialLimit = typeof window !== 'undefined' && window.innerWidth < 768 ? 10 : 20;
-  const displayedBusinesses = shouldShowLoadMore && !showAll
-    ? filteredBusinesses.slice(0, initialLimit)
-    : filteredBusinesses;
-  const hasMoreToShow = shouldShowLoadMore && filteredBusinesses.length > initialLimit;
 
   if (businessesLoading || categoriesLoading) return <LoadingSpinner />;
 
